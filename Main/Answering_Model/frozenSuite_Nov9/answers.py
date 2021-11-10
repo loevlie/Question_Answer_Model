@@ -97,5 +97,8 @@ for i,score in enumerate(sentenceDict):
         #print(candidate,vec)
         vectors[candidate] = vec
     print('Vectors for sentence {}:'.format(i+1), vectors)
+    print()
+    print(len(vectors))
+    print()
         
         

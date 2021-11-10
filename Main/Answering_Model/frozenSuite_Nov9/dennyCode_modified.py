@@ -21,7 +21,7 @@ def find_similar_sentences(raw_text,question,length=5):
                                    if not token.is_stop))
         origSentences.append(s)
     
-    print(len(sentences))
+    #print(len(sentences))
     highly_similar_sentences = {}
     sims = []
     
