@@ -103,4 +103,4 @@ def get_features(text,question,num_rel_sentences):
             #print(candidate,vec)
             vectors['sentence '+str(i)][candidate] = vec
         #print('Vectors for sentence {}:'.format(i+1), vectors['sentence '+str(i)])
-    return vectors
+    return [vectors['sentence '+str(j)] for j in range(len(vectors))]
