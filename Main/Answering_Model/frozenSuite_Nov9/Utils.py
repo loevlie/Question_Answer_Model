@@ -12,11 +12,13 @@ def get_features(text,question,num_rel_sentences):
                   'AMT_COUNTABLE':['QUANTITY','MONEY','CARDINAL'],
                   'AMT_UNCOUNTABLE':['QUANTITY','MONEY','CARDINAL']}
 
-
-    Answer_File = text # 'messi.txt'
-    with open(Answer_File,'r') as f:
-        rawText = f.read()
-
+    if text.endswith('.txt'):
+        Answer_File = text # 'messi.txt'
+        with open(Answer_File,'r') as f:
+            rawText = f.read()
+    else:
+        rawText = text
+    
     rawText = rawText.replace('\n','.')
 
     question = question # 'What disease was Messi diagnosed with?'
@@ -103,4 +105,4 @@ def get_features(text,question,num_rel_sentences):
             #print(candidate,vec)
             vectors['sentence '+str(i)][candidate] = vec
         #print('Vectors for sentence {}:'.format(i+1), vectors['sentence '+str(i)])
-    return [vectors['sentence '+str(j)] for j in range(len(vectors))]
+    return [vectors['sentence '+str(i)] for i in range(len(vectors))]
