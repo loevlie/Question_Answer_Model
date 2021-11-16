@@ -1,6 +1,6 @@
 import spacy
 import numpy as np
-import QAfeatures,dennyCode_modified
+import QAfeatures,dennyCode_modified,preprocess
 
 entMapping = {'TIME':['DATE','CARDINAL','TIME'],
               'LOCATION':['GPE','LOC'],
@@ -13,7 +13,7 @@ Answer_File = 'messi.txt'
 with open(Answer_File,'r') as f:
     rawText = f.read()
 
-rawText = rawText.replace('\n','.')
+rawText = preprocess.preprocess(rawText)
 
 question = 'What disease was Messi diagnosed with?'
 
@@ -65,7 +65,7 @@ for i,score in enumerate(sentenceDict):
         else:
             v2 = A_verbParent.similarity(Q_verbParent)
 
-        if not QS.questionNode.children:
+        if not QS.questionNode or not QS.questionNode.children:
             v3 = 1
         else:
             q = set()
@@ -97,8 +97,5 @@ for i,score in enumerate(sentenceDict):
         #print(candidate,vec)
         vectors[candidate] = vec
     print('Vectors for sentence {}:'.format(i+1), vectors)
-    print()
-    print(len(vectors))
-    print()
         
         

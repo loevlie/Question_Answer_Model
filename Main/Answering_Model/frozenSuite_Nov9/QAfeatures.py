@@ -3,6 +3,9 @@ nlp = spacy.load('en_core_web_md')
 
 questionWords = ['when','why','how','what','which','where','who','whom','whose']
 auxWords = ['be','can','could','do','have','may','might','shall','should','will','would']
+subjectPOS = ['nsubj','nsubjpass']
+nounPOS = ['NOUN','PROPN','PRON']
+
 
 class ParseNode:
     def __init__(self,token,dep,category,parent=None):
@@ -40,6 +43,11 @@ class ParseNode:
             travNode = travNode.parent
         
         return chain
+
+    def POS(self):
+        if type(self.token)==spacy.tokens.Token:
+            return self.token.pos_
+        return self.token.root.pos_
         
 
 def within(token,child):
@@ -102,8 +110,14 @@ class QuestionSense:
         self.nodeDic = {}
 
         #print('Parse tree for sentence: ' + DFS(rootToken,phraseDic,True))
+        self.questionChain = []
+        self.descriptors = None
+        self.questionNode = None
+        
         self.treeRoot = self.DFStree(self.rootToken,'root',rootFlag=True)
         #print('Full parse tree: ' + self.treeRoot.displayTree())
+        if self.yes_no:
+            self.findComparison()
         return
 
     def DFStree(self,token,category,parent=None,rootFlag=False):
@@ -121,7 +135,7 @@ class QuestionSense:
                 
             else:
                 
-                if (rootFlag or opFlag) and not within(node.token,child):
+                if (rootFlag or opFlag) and not within(node.token,child) and child.dep_ != 'punct':
                     node.children.append(self.DFStree(child,'modifier',node))
                 else:
                     continue
@@ -151,6 +165,71 @@ class QuestionSense:
             chain.append((travNode.dep,travNode.parent))
             travNode = travNode.parent
         self.questionChain = chain
+        return
+
+    def findComparison(self):
+        firstLevel = self.treeRoot.children
+        candidatePhrases,modifiers = [],[]
+        for node in firstLevel:
+            if node.category != 'noun':
+                modifiers.append(node)
+            else:
+                if node.POS() in nounPOS:
+                    candidatePhrases.append(node)
+                else:
+                    modifiers.append(node)
+            
+        if not candidatePhrases:
+            print('Could not resolve this question as a binary comparison')
+            self.subject,self.predicate = None,None
+            return
+        
+        candidateSubjects = [node for node in candidatePhrases if node.dep in subjectPOS]
+        if candidateSubjects:
+            subject = candidateSubjects[0]
+        else:
+            subject = candidatePhrases[0]
+
+        
+        if len(candidateSubjects) > 1 and self.rootToken.lemma_ in auxWords:
+            predicate = candidateSubjects[1]
+        elif len(candidatePhrases) > 1:
+            predicate = candidatePhrases[1]
+        else:
+            for child in firstLevel:
+                if child in candidatePhrases:
+                    continue
+                candidatePhrases.extend([grandchild for grandchild in child.children\
+                        if grandchild.category=='noun' and grandchild.POS() in nounPOS])
+            if len(candidatePhrases) > 1:
+                predicate = candidatePhrases[1]
+            elif modifiers:
+                predicate = modifiers[0]
+            else:
+                for child in candidatePhrases:
+                    candidatePhrases.extend([grandchild for grandchild in child.children \
+                        if grandchild.category=='noun' and grandchild.POS() in nounPOS])
+                if len(candidatePhrases) > 1:
+                    predicate = candidatePhrases[1]
+                else:
+                    predicate = None
+
+        self.gullets = [m for m in modifiers if predicate != m \
+                        and predicate.parent != m and m.token.lemma_ not in auxWords]
+
+        gulletText = self.rootToken.text
+        
+        if predicate and predicate.parent.dep == 'agent':
+            subject,predicate = predicate,subject #passive voice!
+        elif predicate:
+            chainFlipped = predicate.getChain()[::-1]
+            if len(chainFlipped) > 1:
+                for dep,node in chainFlipped[1:]:
+                    gulletText += ' ' + node.token.text
+                
+            
+        self.subject,self.predicate = subject,predicate
+        self.gulletText = gulletText
         return
 
 class AnswerSense:
@@ -186,8 +265,10 @@ class AnswerSense:
             if child in self.phraseDic or any(p in child.subtree for p in self.phraseDic):
                 node.children.append(self.DFStree(child,'noun',node))
                 
-            else:
+            elif not within(node.token,child) and child.dep_ != 'punct':
                 node.children.append(self.DFStree(child,'modifier',node))
+            else:
+                continue
 
         if token in self.candidates:
             # We have a candidate answer
@@ -199,6 +280,70 @@ class AnswerSense:
         
         return node
 
+    def findComparison(self):
+        firstLevel = self.treeRoot.children
+        candidatePhrases,modifiers = [],[]
+        for node in firstLevel:
+            if node.category != 'noun':
+                modifiers.append(node)
+            else:
+                if node.POS() in nounPOS:
+                    candidatePhrases.append(node)
+                else:
+                    modifiers.append(node)
+            
+        if not candidatePhrases:
+            print('Could not resolve this answer as a binary comparison')
+            self.subject,self.predicate = None,None
+            return
+        
+        candidateSubjects = [node for node in candidatePhrases if node.dep in subjectPOS]
+        if candidateSubjects:
+            subject = candidateSubjects[0]
+        else:
+            subject = candidatePhrases[0]
+
+        
+        if len(candidateSubjects) > 1 and self.rootToken.lemma_ in auxWords:
+            predicate = candidateSubjects[1]
+        elif len(candidatePhrases) > 1:
+            predicate = candidatePhrases[1]
+        else:
+            for child in firstLevel:
+                if child in candidatePhrases:
+                    continue
+                candidatePhrases.extend([grandchild for grandchild in child.children\
+                        if grandchild.category=='noun' and grandchild.POS() in nounPOS])
+            if len(candidatePhrases) > 1:
+                predicate = candidatePhrases[1]
+            elif modifiers:
+                predicate = modifiers[0]
+            else:
+                for child in candidatePhrases:
+                    candidatePhrases.extend([grandchild for grandchild in child.children \
+                        if grandchild.category=='noun' and grandchild.POS() in nounPOS])
+                if len(candidatePhrases) > 1:
+                    predicate = candidatePhrases[1]
+                else:
+                    predicate = None
+
+        self.gullets = [m for m in modifiers if predicate != m \
+                        and predicate.parent != m and m.token.lemma_ not in auxWords]
+
+        gulletText = self.rootToken.text
+        if predicate and predicate.parent.dep == 'agent':
+            subject,predicate = predicate,subject #passive voice!
+        elif predicate:
+            chainFlipped = predicate.getChain()[::-1]
+            if len(chainFlipped) > 1:
+                for dep,node in chainFlipped[1:]:
+                    gulletText += ' ' + node.token.text
+            
+        self.subject,self.predicate = subject,predicate
+        self.gulletText = gulletText
+        
+        return
+
         
 def verbParent(chain):
     verbs,secondaries = [],[]
@@ -206,7 +351,7 @@ def verbParent(chain):
         if type(node.token) != spacy.tokens.Token:
             continue
         secondaries.append(node)
-        if node.token.pos_ == 'VERB':
+        if node.token.pos_ == 'VERB' or node.token.pos_ == 'AUX':
             verbs.append(node.token)
     nonAuxVerbs = [v for v in verbs if v.lemma_ not in auxWords]
     if nonAuxVerbs:
@@ -214,7 +359,9 @@ def verbParent(chain):
     for chainNode in secondaries: # if nothing found
         verbs.extend([child.token for child in chainNode.children if \
                       type(child.token)==spacy.tokens.Token and \
-                      child.token.pos_ == 'VERB']) # look at all the children along the chain
+                      (child.token.pos_ == 'VERB' or child.token.pos_ =='AUX')])
+        # look at all the children along the chain
+        
     nonAuxVerbs = [v for v in verbs if v.lemma_ not in auxWords]
     if nonAuxVerbs: # aaand try again
         return nonAuxVerbs[0]
@@ -224,6 +371,7 @@ def verbParent(chain):
 
 
 if __name__ == '__main__':
+    import helpers
     while True:
         text = input('Enter a question. >')
         if not text:
@@ -239,6 +387,12 @@ if __name__ == '__main__':
                 print('This operative word\'s meaning depends on context')
             print('The question is found with direct context: {}'.format(QS.descriptors if QS.descriptors else '[N/A]'))
             print('Downwards dependence of question particle: ' + QS.questionNode.displayTree())
-            print('Upwards dependence of question particle: ' + ', which is'.join('{} of word "{}"'.format(t[0],t[1]) for t in QS.questionChain))
+            print('Upwards dependence of question particle: ' + ', which is '.join('{} of word "{}"'.format(t[0],t[1].token) for t in QS.questionChain))
         print('Full parse tree: ' + QS.treeRoot.displayTree())
+        if QS.yes_no:
+            print('The subject of this binary comparison is: {}'.format(QS.subject.displayTree() if QS.subject else '[N/A]'))
+            print('The predicate of this binary comparison is: {}'.format(QS.predicate.displayTree() if QS.predicate else '[N/A]'))
+            if QS.subject and QS.predicate:
+                print('Central comparison: ' + helpers.displayStructure(QS))
+                
         
