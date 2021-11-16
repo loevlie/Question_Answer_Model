@@ -21,7 +21,7 @@ def find_similar_sentences(raw_text,question,length=5):
                                    if not token.is_stop))
         origSentences.append(s)
     
-    print(len(sentences))
+    #print(len(sentences))
     highly_similar_sentences = {}
     sims = []
     
@@ -36,7 +36,7 @@ def find_similar_sentences(raw_text,question,length=5):
     outDict = {}
     for i in bestIndices:
         outDict[simVec[i]] = origSentences[i]
-        print(origSentences[i],simVec[i])
+        #print(origSentences[i],simVec[i])
         
     return outDict
 
@@ -51,4 +51,4 @@ if __name__ == '__main__':
         question = input('Enter a question. >')
         if not question:
             break
-        print(find_similar_sentences(rawText,question))
+        #print(find_similar_sentences(rawText,question))
