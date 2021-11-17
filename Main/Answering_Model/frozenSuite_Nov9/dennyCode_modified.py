@@ -51,4 +51,4 @@ if __name__ == '__main__':
         question = input('Enter a question. >')
         if not question:
             break
-        #print(find_similar_sentences(rawText,question))
+        print(find_similar_sentences(rawText,question))
