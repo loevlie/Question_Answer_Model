@@ -2,7 +2,7 @@ import spacy
 import numpy as np
 from collections import defaultdict
 import QAfeatures,dennyCode_modified
-
+# from preprocess import preprocess 
 
 def get_features(text,question,num_rel_sentences):
 
@@ -19,7 +19,7 @@ def get_features(text,question,num_rel_sentences):
     else:
         rawText = text
     
-    rawText = rawText.replace('\n','.')
+    rawText = rawText.replace('\n','.') # Replace with "rawText = preprocess(rawText)"
 
     question = question # 'What disease was Messi diagnosed with?'
 
