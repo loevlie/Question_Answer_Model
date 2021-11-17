@@ -28,6 +28,9 @@ def get_features(text,question,num_rel_sentences):
 
 
     QS = QAfeatures.QuestionSense(question)
+    if QS.yes_no:
+        return []
+    
     Q_verbParent = QAfeatures.verbParent(QS.questionChain)
 
     #print('\n')
