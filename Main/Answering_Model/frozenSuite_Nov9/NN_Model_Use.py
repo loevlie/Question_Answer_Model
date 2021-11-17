@@ -1,8 +1,6 @@
-import pandas as pd
-#from Utils import get_features
+
 import numpy as np
-from tqdm.notebook import tqdm
-from sklearn.model_selection import train_test_split
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -99,8 +97,7 @@ model.eval()
 device = torch.device("cpu")
 model.to(device)
 
-if __name__ == '__main__':
-    feature_list = [1,1,1,1,1,1,1]
+def getProbability(feature_list):
     feature = torch.tensor(np.array([feature_list]))
     prob = model(feature.type(torch.float))
-    print(f'The probability is {prob}')
+    return prob
