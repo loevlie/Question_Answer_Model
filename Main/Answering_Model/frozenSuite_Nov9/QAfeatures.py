@@ -225,7 +225,8 @@ class QuestionSense:
             chainFlipped = predicate.getChain()[::-1]
             if len(chainFlipped) > 1:
                 for dep,node in chainFlipped[1:]:
-                    gulletText += ' ' + node.token.text
+                    if dep != 'appos':
+                        gulletText += ' ' + node.token.text
                 
             
         self.subject,self.predicate = subject,predicate

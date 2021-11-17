@@ -10,7 +10,7 @@ doc = nlp(rawText)
 import QAfeatures
 import helpers
 
-def bestBinarySentences(QS,doc):
+def runThroughSentences(QS,doc):
     subjectToken = QS.subject.token
     subjectHead = subjectToken if type(subjectToken)==spacy.tokens.Token \
                   else subjectToken.root
@@ -22,7 +22,6 @@ def bestBinarySentences(QS,doc):
     subjectFixed,predicateFixed = nlp(subjectHead.lemma_),nlp(predicateHead.lemma_)
 
     sentenceList = []
-    # Incorporate sentences as [SENTENCE, SUBJ_TOKEN, PRED_TOKEN, SUBJ_SIM, PRED_SIM]
     
     for s in doc.sents:
         subjMatches = [word for word in s if word.lemma_ == subjectHead.lemma_]
@@ -33,20 +32,33 @@ def bestBinarySentences(QS,doc):
             predVec = np.array([word.similarity(predicateFixed) for word in s if word.text.strip()])
             if np.max(predVec) < 0.85:
                 continue
-            sentenceList.append((s,False))
+            
         elif predMatches and not subjMatches:
             subjVec = np.array([word.similarity(subjectFixed) for word in s if word.text.strip()])
             if np.max(subjVec) < 0.85:
                 continue
-            sentenceList.append((s,False))
-        else:
-            sentenceList.append((s,False))
             
+        k = compareStructures(QS,(s,False))
+        print('\n')
+        
+        if k != None:
+            break
+
+        #print('Trying to split "{}"'.format(s))
         for clause in helpers.splitClausesFully(nlp(s.text)):
             if clause.text == s.text:
                 continue
-            sentenceList.append((clause,True))
-    return sentenceList
+            k = compareStructures(QS,(clause,True))
+            print('\n')
+            if k != None:
+                break
+        if k != None:
+            break
+        
+    if k != None:
+        return k
+    print('No conclusive evidence. We guess NO.')
+    return False
 
 def compareStructures(QS,tup):
     sentence,clauseFlag = tup
@@ -98,9 +110,15 @@ def compareStructures(QS,tup):
             
     sim = fixedQsubj.similarity(fixedAsubj)
     if sim < 0.8:
-        print('Subject mismatch ({} <-> {} = {}). Sentence is useless.'.format(fixedQsubj,fixedAsubj,sim))
-        
-        return None
+        if AS.rootToken.lemma_ == 'be' and AS.predicate.token.similarity(QS.subject.token) >= 0.85:
+            print('Flip subject/predicate of answer')
+            AS.subject,AS.predicate = AS.predicate,AS.subject
+            fixedAsubj = AS.subject.token
+            print('Answer is now: ' + helpers.displayStructure(AS))
+        else:
+            print('Subject mismatch ({} <-> {} = {}). Sentence is useless.'.format(fixedQsubj,fixedAsubj,sim))
+            
+            return None
     print('Subjects match ({} <-> {} = {}).'.format(fixedQsubj,fixedAsubj,sim))
     
     return matchPredicates(QS,AS)
@@ -277,8 +295,5 @@ if __name__ == '__main__':
         if not question:
             break
         QS = QAfeatures.QuestionSense(question)
-        b = bestBinarySentences(QS,doc)
-        for tup in b:
-            compareStructures(QS,tup)
-            print('\n')
+        runThroughSentences(QS,doc)
         

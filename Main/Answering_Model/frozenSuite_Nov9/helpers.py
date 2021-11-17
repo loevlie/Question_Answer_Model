@@ -4,15 +4,17 @@ nlp = spacy.load('en_core_web_md')
 joiningPOS = ['PUNCT','CCONJ','SCONJ']
 
 def fixedSimilarity(span1,span2):
-    if type(span1) == spacy.tokens.Token:
+    if type(span1) == spacy.tokens.Token or len(span1) <= 1:
         comp1 = span1
     else:
-        comp1 = nlp(' '.join(token.text for token in span1 if not token.is_stop))
+        fixed1 = ' '.join(token.text for token in span1 if not token.is_stop)
+        comp1 = nlp(fixed1) if fixed1 else span1
 
-    if type(span2) == spacy.tokens.Token:
+    if type(span2) == spacy.tokens.Token or len(span2) <= 1:
         comp2 = span2
     else:
-        comp2 = nlp(' '.join(token.text for token in span2 if not token.is_stop))
+        fixed2 = ' '.join(token.text for token in span2 if not token.is_stop)
+        comp2 = nlp(fixed2) if fixed2 else span2
     
     return comp1.similarity(comp2)
 
@@ -41,7 +43,13 @@ def displayStructure(senseObj):
     return msg
     
 def splitIntoClauses(doc):
+    #print('Trying to split "{}"'.format(doc))
     root = doc[:].root
+    
+    subj = [c for c in root.children if c.dep_ == 'nsubj' or c.dep_ == 'nsubjpass' or c.dep_ == 'attr']
+    if not subj:
+        return [doc]
+    
     primaryVerbs = []
     if root.pos_ == 'VERB' or root.pos_=='AUX':
         primaryVerbs.append(root)
@@ -75,13 +83,15 @@ def splitIntoClauses(doc):
         if candidateClause.text.strip():
             clauses.append(candidateClause)
     nClauses = []
-    subj = [c for c in root.children if c.dep_ == 'nsubj' or c.dep_ == 'nsubjpass' or c.dep_ == 'attr']
-    subj = subj[0]
     
     for clause in clauses:
+        if len(clause) < 3:
+            continue
         clauseSubj = [c for c in clause.root.children if c.dep_ == 'nsubj' or c.dep_ == 'nsubjpass' or c.dep_ =='attr']
-        if not clauseSubj:
-            clause = nlp(subj.text + ' ' + clause.text)
+        if not clauseSubj and clause[0].pos_ not in joiningPOS:
+            #print('Want to append a subject to clause "{}"'.format(clause))
+            subjToken = subj[0]
+            clause = nlp(subjToken.text + ' ' + clause.text)
         nClauses.append(clause)
     return nClauses
 
@@ -89,8 +99,10 @@ def splitClausesFully(doc):
     s = splitIntoClauses(doc)
     while True:
         newS = []
+        #print('\n'.join(i.text for i in s) + '\n\n')
         for i in s:
-            for j in splitIntoClauses(i):
+            for j in splitIntoClauses(nlp(i.text)):
+                #print(i,'-->',j)
                 if not any(k.text == j.text for k in newS):
                     newS.append(j[:])
         if len(newS) <= len(s):
