@@ -4,8 +4,10 @@ import QAfeatures,dennyCode_modified
 # import preprocess
 import NN_Model_Use
 
+nlp = spacy.load('en_core_web_md')
+
 entMapping = {'TIME':['DATE','CARDINAL','TIME'],
-              'LOCATION':['GPE','LOC'],
+              'LOCATION':['GPE','LOC','FAC'],
               'PERSON':['PERSON','ORG'],
               'AMT_COUNTABLE':['QUANTITY','MONEY','CARDINAL'],
               'AMT_UNCOUNTABLE':['QUANTITY','MONEY','CARDINAL']}
@@ -17,7 +19,7 @@ with open(Answer_File,'r',encoding='ISO-8859-1') as f:
 
 #rawText = preprocess.preprocess(rawText)
 
-question = 'What were opponents of the war known as?'
+question = 'Who was routed by Lee at Chancelorsville?'
 
 sentenceDict = dennyCode_modified.find_similar_sentences(rawText,question,3)
 print('\n'.join((sentenceDict[i].text.strip()+ ' -- score ' + str(i)) for i in sentenceDict))        
@@ -68,7 +70,12 @@ for i,score in enumerate(sentenceDict):
         node,chain = AS.nodeDic[candidate]
         
         if QS.descriptors:
-            v1 = candidate.similarity(QS.descriptors)
+            if candidate in AS.doc.ents:
+                alternate = nlp(spacy.explain(candidate.label_))
+                v1 = max(candidate.similarity(QS.descriptors),\
+                         alternate.similarity(QS.descriptors))
+            else:
+                v1 = candidate.similarity(QS.descriptors)
         else:
             v1 = 0
 
@@ -117,6 +124,7 @@ for i,score in enumerate(sentenceDict):
         #print(candidate,vec)
         vectors[candidate] = vec
         print(candidate)
+        print(vec)
         print(NN_Model_Use.getProbability(vec))
         
     vectorList.append(vectors)
