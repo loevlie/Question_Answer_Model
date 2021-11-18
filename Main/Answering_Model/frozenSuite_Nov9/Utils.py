@@ -11,6 +11,7 @@ def get_features(text,question,num_rel_sentences):
                   'PERSON':['PERSON','ORG'],
                   'AMT_COUNTABLE':['QUANTITY','MONEY','CARDINAL'],
                   'AMT_UNCOUNTABLE':['QUANTITY','MONEY','CARDINAL']}
+    skipList = ['INTJ','PUNCT','AUX','ADP','DET','PRON','CCONJ','SCONJ','PART']
 
     if text.endswith('.txt'):
         Answer_File = text # 'messi.txt'
@@ -44,6 +45,10 @@ def get_features(text,question,num_rel_sentences):
         else:
             candidates = [p.root for p in sentence.noun_chunks]
             for token in sentence:
+                if token.pos_ in skipList:
+                    if token in candidates:
+                        candidates.remove(token)
+                    continue
                 if token not in candidates and not any(token in p for p in sentence.noun_chunks):
                     candidates.append(token)
 
@@ -93,8 +98,15 @@ def get_features(text,question,num_rel_sentences):
 
                 v3 = len(q.intersect(r))/len(q)
 
-            v4 = int('~|'.join(c.text for c in candidate) in \
-                     '~|'.join(t.text for t in QS.doc))
+            fixedAnswer = '~|'.join(c.lemma_ for c in candidate) \
+                      if type(candidate) == spacy.tokens.Span else candidate.lemma_
+            fixedQ = '~|'.join(t.lemma_ for t in QS.doc)
+            v4 = int(fixedAnswer in fixedQ)
+            if v4 == 0 and type(candidate)==spacy.tokens.Span and len(candidate) > 1:
+                shortFixedLeft = '~|'.join(c.lemma_ for c in candidate[:-1])
+                shortFixedRight = '~|'.join(c.lemma_ for c in candidate[1:])
+                if shortFixedLeft in fixedQ or shortFixedRight in fixedQ:
+                    v4 = (len(candidate) - 1.)/(len(candidate))
 
             v5 = len(chain)
 
