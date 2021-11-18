@@ -12,6 +12,14 @@ entMapping = {'TIME':['DATE','CARDINAL','TIME'],
               'AMT_COUNTABLE':['QUANTITY','MONEY','CARDINAL'],
               'AMT_UNCOUNTABLE':['QUANTITY','MONEY','CARDINAL']}
 
+shortExplanations = {'CARDINAL':'numeral',
+                     'DATE':'date','EVENT':'event','FAC':'building, road',
+                     'GPE':'country, state, city','LANGUAGE':'language',
+                     'LAW':'law','LOC':'location','MONEY':'money','NORP':'politics, nation',
+                     'ORDINAL':'first, second','ORG':'organization','PERCENT':'percentage',
+                     'PERSON':'person','PRODUCT':'product','QUANTITY':'quantity','TIME':'time',
+                     'WORK_OF_ART':'artwork'}
+
 
 Answer_File = 'lincolnCoref.txt'
 with open(Answer_File,'r',encoding='ISO-8859-1') as f:
@@ -19,7 +27,7 @@ with open(Answer_File,'r',encoding='ISO-8859-1') as f:
 
 #rawText = preprocess.preprocess(rawText)
 
-question = 'Who was routed by Lee at Chancelorsville?'
+question = 'Which general was routed by Lee at Chancellorsville?'
 
 sentenceDict = dennyCode_modified.find_similar_sentences(rawText,question,3)
 print('\n'.join((sentenceDict[i].text.strip()+ ' -- score ' + str(i)) for i in sentenceDict))        
@@ -71,7 +79,7 @@ for i,score in enumerate(sentenceDict):
         
         if QS.descriptors:
             if candidate in AS.doc.ents:
-                alternate = nlp(spacy.explain(candidate.label_))
+                alternate = nlp(shortExplanations[candidate.label_])
                 v1 = max(candidate.similarity(QS.descriptors),\
                          alternate.similarity(QS.descriptors))
             else:
