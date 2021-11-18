@@ -44,13 +44,13 @@ def get_features(text,question,num_rel_sentences):
             candidates = [p.root for p in sentence.noun_chunks]
         else:
             candidates = [p.root for p in sentence.noun_chunks]
-            for token in sentence:
-                if token.pos_ in skipList:
-                    if token in candidates:
-                        candidates.remove(token)
-                    continue
-                if token not in candidates and not any(token in p for p in sentence.noun_chunks):
-                    candidates.append(token)
+            # for token in sentence:
+            #     if token.pos_ in skipList:
+            #         if token in candidates:
+            #             candidates.remove(token)
+            #         continue
+            #     if token not in candidates and not any(token in p for p in sentence.noun_chunks):
+            #         candidates.append(token)
 
         AS = QAfeatures.AnswerSense(sentence,candidates)
         #vectors = {}
