@@ -152,7 +152,13 @@ def generate_questions(corpus):
                             
                         elif all_words[i].text == "have":
                             rest_of_sentence += "has "
-                            
+                        
+                        elif all_words[i].text == "are":
+                            rest_of_sentence += "is "
+                
+                        elif all_words[i].text == "were":
+                            rest_of_sentence += "was "
+
                         else:
                             rest_of_sentence += all_words[i].text + " "
         
