@@ -127,7 +127,7 @@ def generate_questions(corpus):
         cs = splitClausesFully(doc)
 
         for c in cs:
-            doc = nlp(clause)
+            doc = nlp(c)
             # displacy.render(doc, style="ent")
             named_entities = {}
             for ent in doc.ents:
