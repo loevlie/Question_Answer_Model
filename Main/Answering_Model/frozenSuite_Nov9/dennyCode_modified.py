@@ -7,10 +7,10 @@ nlp = spacy.load('en_core_web_md')
 
 def find_similar_sentences(raw_text,question,length=5):
     # Break the text into sentences
-    question = nlp(question)
+    question = question
     question_nostop = nlp(' '.join(token.text for token in question if not token.is_stop))
     
-    answer = nlp(raw_text)
+    answer = raw_text
     
     sentences = []
     origSentences = []
