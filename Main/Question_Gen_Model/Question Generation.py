@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import spacy
 import inflect
 # from spacy import displacy
@@ -122,10 +124,10 @@ def generate_questions(corpus):
 
     for sentence in sentences:
         doc = nlp(sentence)
-        clauses = splitClausesFully(doc)
+        cs = splitClausesFully(doc)
 
-        for clause in clauses:
-            doc = nlp(clause)
+        for c in cs:
+            doc = nlp(c)
             # displacy.render(doc, style="ent")
             named_entities = {}
             for ent in doc.ents:
@@ -152,7 +154,13 @@ def generate_questions(corpus):
                             
                         elif all_words[i].text == "have":
                             rest_of_sentence += "has "
-                            
+                        
+                        elif all_words[i].text == "are":
+                            rest_of_sentence += "is "
+                
+                        elif all_words[i].text == "were":
+                            rest_of_sentence += "was "
+
                         else:
                             rest_of_sentence += all_words[i].text + " "
         
