@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import spacy
 import inflect
 # from spacy import displacy
@@ -122,9 +124,9 @@ def generate_questions(corpus):
 
     for sentence in sentences:
         doc = nlp(sentence)
-        clauses = splitClausesFully(doc)
+        cs = splitClausesFully(doc)
 
-        for clause in clauses:
+        for c in cs:
             doc = nlp(clause)
             # displacy.render(doc, style="ent")
             named_entities = {}
