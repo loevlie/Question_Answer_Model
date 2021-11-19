@@ -13,18 +13,19 @@ def get_features(text,question,num_rel_sentences):
                   'AMT_UNCOUNTABLE':['QUANTITY','MONEY','CARDINAL']}
     skipList = ['INTJ','PUNCT','AUX','ADP','DET','PRON','CCONJ','SCONJ','PART']
 
-    if text.endswith('.txt'):
-        Answer_File = text # 'messi.txt'
-        with open(Answer_File,'r') as f:
-            rawText = f.read()
-    else:
-        rawText = text
+    # if text.endswith('.txt'):
+    #     Answer_File = text # 'messi.txt'
+    #     with open(Answer_File,'r') as f:
+    #         rawText = f.read()
+    # else:
+    #     rawText = text
     
-    rawText = rawText.replace('\n','.') # Replace with "rawText = preprocess(rawText)"
+    # rawText = rawText.replace('\n','.') # Replace with "rawText = preprocess(rawText)"
+    rawText = text
 
     question = question # 'What disease was Messi diagnosed with?'
 
-    sentenceDict = dennyCode_modified.find_similar_sentences(rawText,question,num_rel_sentences) # num_rel_sentences = 3 --> This is basically a hyper-parameter
+    sentenceDict = dennyCode_modified.find_similar_sentences(rawText,question.doc,num_rel_sentences) # num_rel_sentences = 3 --> This is basically a hyper-parameter
     #print('\n'.join((sentenceDict[i].text.strip()+ ' -- score ' + str(i)) for i in sentenceDict))        
 
 
