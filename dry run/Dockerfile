@@ -5,7 +5,7 @@ ENV LC_ALL C.UTF-8
 
 RUN apt-get -y update && \
     apt-get -y upgrade && \
-    apt-get -y install python-pip python3-dev
+    apt-get -y install python3 python3-pip 
 
 RUN pip3 install --upgrade pip
 RUN pip3 install spacy==3.1.0
@@ -14,17 +14,20 @@ RUN python3 -m spacy download en_core_web_sm
 
 RUN pip3 install inflect
 
-RUN pip3 instalal numpy
+RUN pip3 install numpy
 
 RUN pip3 install torch
 
-RUN pip3 install git+https://github.com/msg-systems/coreferee.git#egg=coreferee
-RUN pip3 install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.1.0/en_core_web_sm-3.1.0.tar.gz
-RUN python3 -m coreferee install en
+RUN apt-get -y install git
+# RUN pip3 install tensorflow
+# RUN pip3 install git+https://github.com/msg-systems/coreferee.git#egg=coreferee
+# RUN pip3 install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.1.0/en_core_web_sm-3.1.0.tar.gz
+# RUN python3 -m coreferee install e n
 
 RUN mkdir /QA
 
-ADD Data /QA
+ADD data /QA
+ADD test_questions.txt /QA
 ADD answer /QA
 ADD ask /QA
 ADD binaryAnswers.py /QA
@@ -35,9 +38,7 @@ ADD preprocess.py /QA
 ADD QAfeatures.py /QA
 ADD Utils.py /QA
 
-ADD Question_Gen_Model /QA
-
-CMD ["chmod a+x /QA*"]
+CMD ["chmod u+x /QA*"]
 
 WORKDIR /QA
-ENTRYPOINT ["/bin/bash", "-c"]
+ENTRYPOINT ["/bin/bash", "-c"]s
