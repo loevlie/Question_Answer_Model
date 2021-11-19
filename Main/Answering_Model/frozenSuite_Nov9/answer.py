@@ -7,6 +7,9 @@ import spacy
 
 from model import ruleBasedModel
 
+import warnings
+warnings.filterwarnings('ignore')
+
 nlp = spacy.load('en_core_web_md')
 
 
