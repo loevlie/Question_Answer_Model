@@ -127,11 +127,11 @@ def matchPredicates(QS,AS):
     sim = helpers.fixedSimilarity(QS.predicate.token,AS.predicate.token)
     if sim >= 0.85:
         #print('Predicates match ({} <-> {} = {}).'.format(QS.predicate.token,\
-                                            AS.predicate.token, sim))
+        #                                    AS.predicate.token, sim))
         return matchGullets(QS,AS)
     else:
         #print('Predicates do not match  ({} <-> {} = {}). Trying to fix.'.format(QS.predicate.token,\
-                                            AS.predicate.token,sim))
+        #                                    AS.predicate.token,sim))
         usingQmatchA = [p for p in AS.nodeDic if helpers.fixedSimilarity(p,QS.predicate.token) >= 0.85]
         usingAmatchQ = [p for p in QS.doc.noun_chunks if helpers.fixedSimilarity(p,AS.predicate.token) >= 0.85]
         if not usingQmatchA and not usingAmatchQ:
@@ -191,7 +191,7 @@ def matchPredicates(QS,AS):
 
                     QS.predicate = match
                     QS.gulletText = gulletText
-                    print('Attempted refactor: ' + helpers.displayStructure(QS))
+                    #print('Attempted refactor: ' + helpers.displayStructure(QS))
                 
         else:
             # refactor answer
@@ -248,7 +248,7 @@ def matchPredicates(QS,AS):
 
                     AS.gulletText = gulletText
                     AS.predicate = match[0]
-                    print('Attempted refactor: ' + helpers.displayStructure(AS))
+                    #print('Attempted refactor: ' + helpers.displayStructure(AS))
 
     #print('Predicates now match ({} <-> {} = {})'.format(QS.predicate.token,\
     #        AS.predicate.token, helpers.fixedSimilarity(QS.predicate.token,AS.predicate.token)))
