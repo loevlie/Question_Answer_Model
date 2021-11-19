@@ -2,7 +2,8 @@ import spacy
 import numpy as np
 import QAfeatures,dennyCode_modified
 # import preprocess
-import NN_Model_Use
+#import NN_Model_Use
+import model
 
 nlp = spacy.load('en_core_web_md')
 
@@ -25,47 +26,49 @@ Answer_File = 'lincolnCoref.txt'
 with open(Answer_File,'r',encoding='ISO-8859-1') as f:
     rawText = f.read()
 
-#rawText = preprocess.preprocess(rawText)
+rawText = nlp(rawText)
 
-question = 'Which general was routed by Lee at Chancellorsville?'
-
-sentenceDict = dennyCode_modified.find_similar_sentences(rawText,question,3)
-print('\n'.join((sentenceDict[i].text.strip()+ ' -- score ' + str(i)) for i in sentenceDict))        
-
-
+question = 'What were opponents of the war called?'
 QS = QAfeatures.QuestionSense(question)
 Q_verbParent = QAfeatures.verbParent(QS.questionChain)
+
+sentenceDict = dennyCode_modified.find_similar_sentences(rawText,QS.doc,3)
+print('\n'.join((sentenceDict[i].text.strip()+ ' -- score ' + str(i)) for i in sentenceDict))
 
 vectorList = []
 skipList = ['INTJ','PUNCT','AUX','ADP','DET','PRON','CCONJ','SCONJ','PART']
 
 print('\n')
 for i,score in enumerate(sentenceDict):
-    print('\nSENTENCE {}:'.format(i))
+    #print('\nSENTENCE {}:'.format(i))
     sentence = sentenceDict[score]
     if QS.ansType:
+        v0 = 1
         candidates = [ent.root for ent in sentence.ents]
     elif QS.descriptors:
+        v0 = 2
         candidates = [p.root for p in sentence.noun_chunks]
     else:
+        v0 = 3
         candidates = [p.root for p in sentence.noun_chunks]
-        for token in sentence:
-            if token.pos_ in skipList:
-
-                if token in candidates:
-                    candidates.remove(token)
-                
-                continue
-            print(token,token.pos_)
-            if token not in candidates and not any(token in p for p in sentence.noun_chunks):
-                candidates.append(token)
+##        for token in sentence:
+##            if token.pos_ in skipList:
+##
+##                if token in candidates:
+##                    candidates.remove(token)
+##                
+##                continue
+##            print(token,token.pos_)
+##            if token not in candidates and not any(token in p for p in sentence.noun_chunks):
+##                candidates.append(token)
     
     AS = QAfeatures.AnswerSense(sentence,candidates)
     vectors = {}
     
     for candidate in AS.nodeDic:
         
-        # Fill out the feature vector, [v1 v2 v3 v4 v5 v6 v7]
+        # Fill out the feature vector, [v0 v1 v2 v3 v4 v5 v6 v7]
+        # v0: type of question (1 = easy, 2 = medium, 3 = hard)
         # v1: similarity between descriptor and candidate (default 0)
         # v2: similarity between candidate's verb parent and question's verb parent
         # v3: fraction of downwards dependents of question particle that are shared
@@ -128,12 +131,11 @@ for i,score in enumerate(sentenceDict):
 
         v7 = len(candidate)
 
-        vec = np.array([v1,v2,v3,v4,v5,v6,v7])
+        vec = np.array([v0,v1,v2,v3,v4,v5,v6,v7])
         #print(candidate,vec)
         vectors[candidate] = vec
-        print(candidate)
-        print(vec)
-        print(NN_Model_Use.getProbability(vec))
+        #print(candidate)
+        #print(vec)
         
     vectorList.append(vectors)
     

@@ -7,11 +7,19 @@ import QAfeatures,dennyCode_modified
 def get_features(text,question,num_rel_sentences):
 
     entMapping = {'TIME':['DATE','CARDINAL','TIME'],
-                  'LOCATION':['GPE','LOC'],
+                  'LOCATION':['GPE','LOC','FAC'],
                   'PERSON':['PERSON','ORG'],
                   'AMT_COUNTABLE':['QUANTITY','MONEY','CARDINAL'],
                   'AMT_UNCOUNTABLE':['QUANTITY','MONEY','CARDINAL']}
     skipList = ['INTJ','PUNCT','AUX','ADP','DET','PRON','CCONJ','SCONJ','PART']
+
+    shortExplanations = {'CARDINAL':'numeral',
+                     'DATE':'date','EVENT':'event','FAC':'building, road',
+                     'GPE':'country, state, city','LANGUAGE':'language',
+                     'LAW':'law','LOC':'location','MONEY':'money','NORP':'politics, nation',
+                     'ORDINAL':'first, second','ORG':'organization','PERCENT':'percentage',
+                     'PERSON':'person','PRODUCT':'product','QUANTITY':'quantity','TIME':'time',
+                     'WORK_OF_ART':'artwork'}
 
 #     if text.endswith('.txt'):
 #         Answer_File = text # 'messi.txt'
@@ -41,18 +49,21 @@ def get_features(text,question,num_rel_sentences):
     for i,score in enumerate(sentenceDict):
         sentence = sentenceDict[score]
         if QS.ansType:
+            v0 = 1
             candidates = [ent.root for ent in sentence.ents]
         elif QS.descriptors:
+            v0 = 2
             candidates = [p.root for p in sentence.noun_chunks]
         else:
+            v0 = 3
             candidates = [p.root for p in sentence.noun_chunks]
-            for token in sentence:
-                if token.pos_ in skipList:
-                    if token in candidates:
-                        candidates.remove(token)
-                    continue
-                if token not in candidates and not any(token in p for p in sentence.noun_chunks):
-                    candidates.append(token)
+##            for token in sentence:
+##                if token.pos_ in skipList:
+##                    if token in candidates:
+##                        candidates.remove(token)
+##                    continue
+##                if token not in candidates and not any(token in p for p in sentence.noun_chunks):
+##                    candidates.append(token)
 
         AS = QAfeatures.AnswerSense(sentence,candidates)
         #vectors = {}
@@ -60,7 +71,8 @@ def get_features(text,question,num_rel_sentences):
 
         for candidate in AS.nodeDic:
 
-            # Fill out the feature vector, [v1 v2 v3 v4 v5 v6 v7]
+            # Fill out the feature vector, [v0 v1 v2 v3 v4 v5 v6 v7]
+            # v0: type of question (easy = 1, medium = 2, hard = 3)
             # v1: similarity between descriptor and candidate (default 0)
             # v2: similarity between candidate's verb parent and question's verb parent
             # v3: fraction of downwards dependents of question particle that are shared
@@ -73,7 +85,12 @@ def get_features(text,question,num_rel_sentences):
             node,chain = AS.nodeDic[candidate]
 
             if QS.descriptors:
-                v1 = candidate.similarity(QS.descriptors)
+                if candidate in AS.doc.ents:
+                    alternate = nlp(shortExplanations[candidate.label_])
+                    v1 = max(candidate.similarity(QS.descriptors),\
+                             alternate.similarity(QS.descriptors))
+                else:
+                    v1 = candidate.similarity(QS.descriptors)
             else:
                 v1 = 0
 
@@ -118,7 +135,7 @@ def get_features(text,question,num_rel_sentences):
 
             v7 = len(candidate)
 
-            vec = np.array([v1,v2,v3,v4,v5,v6,v7])
+            vec = np.array([v0,v1,v2,v3,v4,v5,v6,v7])
             #print(candidate,vec)
             vectors['sentence '+str(i)][candidate] = vec
         #print('Vectors for sentence {}:'.format(i+1), vectors['sentence '+str(i)])

@@ -3,7 +3,9 @@ import binaryAnswers
 import QAfeatures
 from preprocess import preprocess
 import sys
-import spacy 
+import spacy
+
+from model import ruleBasedModel
 
 nlp = spacy.load('en_core_web_md')
 
@@ -25,11 +27,10 @@ fullText = nlp(rawText)
 for q in questions:
     QS = QAfeatures.QuestionSense(q)
     if QS.yes_no:
-        ans = binaryAnswers(QS,fullText)
+        ans = 'Yes' if binaryAnswers.runThroughSentences(QS,fullText) == True else 'No'
     else:
         featureVectors = get_features(QS,fullText,3)
-        # ans = model(featureVectors)
-        ans = 'TODO'
+        ans = ruleBasedModel(featureVectors)
     print(ans)
 
 # f.close()
