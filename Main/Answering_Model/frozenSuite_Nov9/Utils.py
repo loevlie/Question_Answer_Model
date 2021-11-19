@@ -25,7 +25,7 @@ def get_features(text,question,num_rel_sentences):
 
     question = question # 'What disease was Messi diagnosed with?'
 
-    sentenceDict = dennyCode_modified.find_similar_sentences(rawText,question,num_rel_sentences) # num_rel_sentences = 3 --> This is basically a hyper-parameter
+    sentenceDict = dennyCode_modified.find_similar_sentences(rawText,question.doc,num_rel_sentences) # num_rel_sentences = 3 --> This is basically a hyper-parameter
     #print('\n'.join((sentenceDict[i].text.strip()+ ' -- score ' + str(i)) for i in sentenceDict))        
 
 
