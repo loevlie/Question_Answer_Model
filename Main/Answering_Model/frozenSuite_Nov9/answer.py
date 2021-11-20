@@ -3,7 +3,7 @@ if __name__ == '__main__':
     from Utils import get_features
     import binaryAnswers
     import QAfeatures
-    from preprocess import preprocess
+    #from preprocess import preprocess
     import sys
     import spacy
 
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     with open(question_file) as g:
         questions = g.read().split('\n')
 
-    raw_text = preprocess(raw_text)
+    #raw_text = preprocess(raw_text)
     fullText = nlp(raw_text)
 
     # f = open('an',"w+")
