@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
-
-from Utils import get_features
-import binaryAnswers
-import QAfeatures
-from preprocess import preprocess
-import sys
-import spacy
-
-from model import ruleBasedModel
-
-import warnings
-warnings.filterwarnings('ignore')
-
-
 if __name__ == '__main__':
-    
+    from Utils import get_features
+    import binaryAnswers
+    import QAfeatures
+    #from preprocess import preprocess
+    import sys
+    import spacy
+
+    from model import ruleBasedModel
+
+    import warnings
+    warnings.filterwarnings('ignore')
+
     nlp = spacy.load('en_core_web_md')
 
 
@@ -27,7 +24,7 @@ if __name__ == '__main__':
     with open(question_file) as g:
         questions = g.read().split('\n')
 
-    raw_text = preprocess(raw_text)
+    #raw_text = preprocess(raw_text)
     fullText = nlp(raw_text)
 
     # f = open('an',"w+")
