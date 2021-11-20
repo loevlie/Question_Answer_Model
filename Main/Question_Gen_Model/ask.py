@@ -4,7 +4,7 @@ from numpy import append
 import spacy
 import inflect
 import sys
-import preprocess
+# import preprocess
 import random
 # from spacy import displacy
 nlp = spacy.load('en_core_web_md')
@@ -334,7 +334,7 @@ def generate_questions(corpus):
 if __name__ == '__main__':
     corpus = open(sys.argv[1], "r").read()
     question_n = int(sys.argv[2])
-    corpus = preprocess(corpus.text)
+    # corpus = preprocess(corpus.text)
     # corpus = input("Enter a sentence .> ")
     if corpus:
         generated = generate_questions(corpus)

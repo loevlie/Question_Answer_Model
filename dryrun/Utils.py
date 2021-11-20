@@ -2,7 +2,9 @@ import spacy
 import numpy as np
 from collections import defaultdict
 import QAfeatures,dennyCode_modified
-# from preprocess import preprocess 
+# from preprocess import preprocess
+
+nlp = spacy.load('en_core_web_md')
 
 def get_features(text,question,num_rel_sentences):
 

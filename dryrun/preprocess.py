@@ -73,11 +73,11 @@ def preprocess(rawText):
     doc = nlp(rawText)
     return replaceInDoc(doc)
 
-# if __name__ == '__main__':
-#     with open('lincoln.txt') as f:
-#         rawText = f.read()
-#     rawText = preprocess(rawText)
-#     with open('lincolnCoref.txt','w') as f:
-#         f.write(rawText)
-#     print('Wrote preprocessed text to lincolnCoref.txt')
+if __name__ == '__main__':
+    with open('lincoln.txt') as f:
+        rawText = f.read()
+    rawText = preprocess(rawText)
+    with open('lincolnCoref.txt','w') as f:
+        f.write(rawText)
+    print('Wrote preprocessed text to lincolnCoref.txt')
 

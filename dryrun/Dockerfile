@@ -38,7 +38,9 @@ ADD preprocess.py /QA
 ADD QAfeatures.py /QA
 ADD Utils.py /QA
 
-CMD ["chmod u+x /QA*"]
-
 WORKDIR /QA
-ENTRYPOINT ["/bin/bash", "-c"]s
+
+RUN ["chmod", "+x", "./answer"]
+RUN ["chmod", "+x", "./ask"]
+
+ENTRYPOINT ["/bin/bash", "-c"]

@@ -53,8 +53,14 @@ def splitIntoClauses(doc):
     primaryVerbs = []
     if root.pos_ == 'VERB' or root.pos_=='AUX':
         primaryVerbs.append(root)
-    
-    primaryVerbs += [c for c in root.children if c.pos_ == 'VERB' or c.pos_ == 'AUX']
+
+    for i,token in enumerate(doc):
+        if token not in root.children:
+            continue
+        if (i > 0 and doc[i-1] in primaryVerbs) or (i < len(doc)-1 and doc[i+1] in primaryVerbs):
+            continue
+        if token.pos_ == 'VERB' or token.pos_ == 'AUX':
+            primaryVerbs.append(token)
     
     for verb in primaryVerbs:
         if verb == root:
