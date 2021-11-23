@@ -49,8 +49,8 @@ RUN apt-get update && apt-get install -y     python3     python3-pip
 
 
 RUN pip3 install spacy==3.1.0
-RUN python3 -m spacy download en_core_web_md
-RUN python3 -m spacy download en_core_web_sm
+# RUN python3 -m spacy download en_core_web_md
+# RUN python3 -m spacy download en_core_web_sm
 
 RUN pip3 install inflect
 
