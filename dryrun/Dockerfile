@@ -47,6 +47,7 @@ RUN apt-get update && apt-get install -y     python3     python3-pip
 # RUN apt -y install python3.8-pip
 # RUN pip3 install --upgrade pip
 
+RUN apt-get update
 
 RUN pip3 install spacy==3.1.0
 # RUN python3 -m spacy download en_core_web_md
@@ -59,6 +60,8 @@ RUN pip3 install numpy
 RUN pip3 install torch
 
 RUN apt-get -y install git
+
+RUN apt-get update
 # RUN pip3 install tensorflow
 # RUN pip3 install --upgrade tensorflow
 # RUN pip3 install keras
