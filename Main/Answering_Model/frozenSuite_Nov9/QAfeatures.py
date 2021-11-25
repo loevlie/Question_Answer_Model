@@ -79,8 +79,11 @@ class QuestionSense:
             wordList = self.doc.text.lower().split()
             operativeWords = [q for q in questionWords if q in wordList]
             if len(operativeWords) > 1:
-                raise Warning('WARNING: more than one operative word found (' + \
+                operativeWords = [w for w in operativeWords if w != 'when']
+                if len(operativeWords) > 1:
+                    raise Warning('WARNING: more than one operative word found (' + \
                       ', '.join('"' + w + '"' for w in operativeWords) + ').')
+        
             if not operativeWords:
                 raise Warning('Error: this question could not be resolved.')
                 return
@@ -294,7 +297,7 @@ class AnswerSense:
                     modifiers.append(node)
             
         if not candidatePhrases:
-            print('Could not resolve this answer as a binary comparison')
+            #print('Could not resolve this answer as a binary comparison')
             self.subject,self.predicate = None,None
             return
         
@@ -369,6 +372,20 @@ def verbParent(chain):
     if verbs: # well, I guess we have only auxiliary verbs
         return verbs[0] # return the closest one
     return None # give up
+
+def fullContext(token):
+    lefts,rights = list(token.lefts),list(token.rights)
+    if not lefts and not rights:
+        return token.text
+    msg = ''
+    for leftChild in lefts:
+        msg += fullContext(leftChild) + ' '
+    msg += token.text + ' '
+    for rightChild in rights:
+        msg += fullContext(rightChild) + ' '
+    if msg[-1] == ' ':
+        msg = msg[:-1]
+    return msg
 
 
 if __name__ == '__main__':

@@ -10,6 +10,8 @@ nlp = spacy.load('en_core_web_md')
 import QAfeatures
 import helpers
 
+uselessGullets = ['ever','sometimes','once']
+
 def runThroughSentences(QS,doc):
     subjectToken = QS.subject.token
     subjectHead = subjectToken if type(subjectToken)==spacy.tokens.Token \
@@ -22,6 +24,7 @@ def runThroughSentences(QS,doc):
     subjectFixed,predicateFixed = nlp(subjectHead.lemma_),nlp(predicateHead.lemma_)
 
     sentenceList = []
+    k = None
     
     for s in doc.sents:
         subjMatches = [word for word in s if word.lemma_ == subjectHead.lemma_]
@@ -131,8 +134,8 @@ def matchPredicates(QS,AS):
         return matchGullets(QS,AS)
     else:
         #print('Predicates do not match  ({} <-> {} = {}). Trying to fix.'.format(QS.predicate.token,\
-        #                                    AS.predicate.token,sim))
-        usingQmatchA = [p for p in AS.nodeDic if helpers.fixedSimilarity(p,QS.predicate.token) >= 0.85]
+        #                                   AS.predicate.token,sim))
+        usingQmatchA = [p for p in AS.nodeDic if helpers.fixedSimilarity(p,QS.predicate.token) >= 0.85 and p.root.dep_ != 'nsubj']
         usingAmatchQ = [p for p in QS.doc.noun_chunks if helpers.fixedSimilarity(p,AS.predicate.token) >= 0.85]
         if not usingQmatchA and not usingAmatchQ:
             #print('Cannot fix predicate disparity. Sentence is useless.')
@@ -270,7 +273,7 @@ def matchGullets(QS,AS):
         return False
     
     for particleNode in QS.gullets:
-        if particleNode.POS() == 'AUX':
+        if particleNode.token.text in uselessGullets or particleNode.POS() == 'AUX':
             continue
         elif particleNode.POS() == 'ADP':
             particleNode = particleNode.children[0]
