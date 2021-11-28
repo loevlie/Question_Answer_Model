@@ -173,7 +173,7 @@ def get_features(text,QS,num_rel_sentences):
 
             v9 = 0
             ourChildren = node.children
-            ourSiblings = node.parent.children
+            ourSiblings = node.parent.children if node.parent else []
             if any(c.dep == 'neg' for c in ourChildren) or any(sib.dep == 'neg' for sib in ourSiblings):
                 v9 = 1
 
