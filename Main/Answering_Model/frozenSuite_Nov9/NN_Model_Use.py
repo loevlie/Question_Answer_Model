@@ -8,8 +8,8 @@ from torch.utils.data import Dataset, DataLoader
 
 class Model(nn.Module):
 
-    def __init__(self,in_features=7,h1=2048,h2=2048,h3=1024*2,h4=1024,h5=900,h6=900,h7=800,
-                 h8=800,h9 = 800,h10=800,h11=800,h12=800,h13=800,h14=800,h15=800,out_features=1):
+    def __init__(self,in_features=30*10,h1=2048,h2=2048,h3=1024*2,h4=1024,h5=900,h6=900,h7=800,
+                 h8=800,h9 = 800,h10=800,h11=800,h12=800,h13=800,h14=800,h15=800,out_features=30):
         
         # How many layers?
         # Input layer (# of features) --> hidden layer 1 (number of neurons N) --> h2 (N) --> output (346 of classes)
@@ -92,10 +92,12 @@ class Model(nn.Module):
 
 
 model = Model()
-model.load_state_dict(torch.load('MyModel_V2_epoch800.pt', map_location=torch.device('cpu')));
+model.load_state_dict(torch.load('MyModel_V5_epoch400.pt', map_location=torch.device('cpu')));
 model.eval()
 device = torch.device("cpu")
 model.to(device)
+
+
 
 def getProbability(feature_list):
     feature = torch.tensor(np.array([feature_list]))
