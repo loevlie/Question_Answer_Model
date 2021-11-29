@@ -3,16 +3,16 @@ import QAfeatures
 def ruleBasedModel(fullDict):
     import random
 
-    #print('Candidates: ')
+    print('Candidates: ')
     
     greatCandidates,okayCandidates = {},{}
     doWeCareAboutVerbs = any(fullDict[key][2] > 0.2 for key in fullDict)
     for ans in fullDict:
         vec = fullDict[ans]
-        #print(ans.text,vec)
+        print(ans.text,vec)
         if (vec[1] > 0.8 and vec[2] > 0.5) or (vec[2] > 0.8 and vec[1] > 0.5):
             fixedScore = int(10 * (vec[1] * vec[2]))/10.
-            if vec[0] == 1 and vec[6] == 0:
+            if vec[0] == 1 and vec[6] < 0.5:
                 fixedScore -= 0.5
             if vec[4] >= 0.5:
                 fixedScore -= 0.3
@@ -33,7 +33,7 @@ def ruleBasedModel(fullDict):
 
     if greatCandidates:
         bestBatch = greatCandidates[max(greatCandidates)]
-        #print('Great candidates: ' + '; '.join(i.text for i in bestBatch))
+        print('Great candidates: ' + '; '.join(i.text for i in bestBatch))
         if len(bestBatch) == 1:
             return bestBatch[0]
         chainLengths = [fullDict[ans][5] for ans in bestBatch]
@@ -56,7 +56,7 @@ def ruleBasedModel(fullDict):
 
         if namedEntityFlag and vec[6] == 0:
             continue
-        elif vec[0] == 1 and vec[6] == 0:
+        elif vec[0] == 1 and vec[6]==0:
             score -= 0.5
         elif vec[0] == 3 and vec[6] != 0:
             score -= 0.05
@@ -72,7 +72,7 @@ def ruleBasedModel(fullDict):
 
         score *= vec[7]
 
-        #print('Okay candidate: ',ans,score)
+        print('Okay candidate: ',ans,score)
         if score > bestScore:
             bestScore = score
             bestAns = ans
