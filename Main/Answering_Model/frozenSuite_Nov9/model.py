@@ -1,15 +1,16 @@
 import QAfeatures
+import numpy
 
 def ruleBasedModel(fullDict):
     import random
 
-    print('Candidates: ')
+    #print('Candidates: ')
     
     greatCandidates,okayCandidates = {},{}
     doWeCareAboutVerbs = any(fullDict[key][2] > 0.2 for key in fullDict)
     for ans in fullDict:
         vec = fullDict[ans]
-        print(ans.text,vec)
+        #print(ans.text,vec)
         if (vec[1] > 0.8 and vec[2] > 0.5) or (vec[2] > 0.8 and vec[1] > 0.5):
             fixedScore = int(10 * (vec[1] * vec[2]))/10.
             if vec[0] == 1 and vec[6] < 0.5:
@@ -33,7 +34,7 @@ def ruleBasedModel(fullDict):
 
     if greatCandidates:
         bestBatch = greatCandidates[max(greatCandidates)]
-        print('Great candidates: ' + '; '.join(i.text for i in bestBatch))
+        #print('Great candidates: ' + '; '.join(i.text for i in bestBatch))
         if len(bestBatch) == 1:
             return bestBatch[0]
         chainLengths = [fullDict[ans][5] for ans in bestBatch]
@@ -72,15 +73,18 @@ def ruleBasedModel(fullDict):
 
         score *= vec[7]
 
-        print('Okay candidate: ',ans,score)
+        #print('Okay candidate: ',ans,score)
         if score > bestScore:
             bestScore = score
             bestAns = ans
         elif score == bestScore:
-            if type(bestAns) == list:
-                bestAns.append(ans)
+            if bestAns == None:
+                bestAns = ans
             else:
-                bestAns = [bestAns,ans]
+                if type(bestAns) == list:
+                    bestAns.append(ans)
+                else:
+                    bestAns = [bestAns,ans]
         
     if bestAns:
         if type(bestAns) == list:
@@ -90,11 +94,30 @@ def ruleBasedModel(fullDict):
                 return bestAns[0]
             else:
                 print('Warning: we have a tie between okay answers')
-                return bestAns[0]
+                return bestAns
         else:  
             return bestAns
 
     print('Warning: we have not found even a somewhat passable answer')
     return None
+
+def neuralNetModel(fullDict):
+    import NN_Model_Use
+    answers = list(fullDict.keys())
+    vectors = tuple(fullDict.values())
+    flattenedVec = numpy.hstack(vectors)
+    flattenedVec = numpy.hstack((flattenedVec,-1*numpy.ones(30*10 - len(flattenedVec))))
+    print(flattenedVec)
+    probabilities = NN_Model_Use.getProbability(flattenedVec).detach().numpy()[0,:]
+
+    counter = 0
+    for i,ans in enumerate(answers):
+        print(ans,probabilities[i])
+        counter += probabilities[i]
+
+    print('[Padding answers]',1-counter)
+    
+    return answers[numpy.argmax(probabilities)]
+    
         
         
