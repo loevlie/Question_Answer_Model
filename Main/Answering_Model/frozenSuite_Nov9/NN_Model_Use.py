@@ -106,8 +106,8 @@ def getProbability(feature_list):
 
 import xgboost as xgb
 
-XGb = xgb.Booster()
-XGB = XGb.load_model('XGBoost.model')
+XGB = xgb.Booster()
+XGB.load_model('XGBoost.model')
 
 def XGBoost_Answer(feature_list):
     feature = np.array([feature_list])
