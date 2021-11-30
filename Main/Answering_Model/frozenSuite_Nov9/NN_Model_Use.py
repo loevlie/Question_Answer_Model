@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
+import xgboost
 
 class Model(nn.Module):
 
@@ -104,10 +105,10 @@ def getProbability(feature_list):
     prob = model(feature.type(torch.float))
     return prob
 
-import pickle
+import xgboost as xgb
 
-with open('XGBoost_43.pkl','rb') as f:
-    XGB = pickle.load(f)
+XGb = xgb.Booster()
+XGB = XGb.load_model('XGBoost.model')
 
 def XGBoost_Answer(feature_list):
     feature = np.array([feature_list])
