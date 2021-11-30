@@ -97,9 +97,10 @@ model.eval()
 device = torch.device("cpu")
 model.to(device)
 
-
+def softmax(xs):
+    return np.exp(xs) / sum(np.exp(xs))
 
 def getProbability(feature_list):
     feature = torch.tensor(np.array([feature_list]))
-    prob = model(feature.type(torch.float))
+    prob = softmax(model(feature.type(torch.float)))
     return prob
