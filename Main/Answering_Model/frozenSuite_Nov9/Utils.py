@@ -43,11 +43,6 @@ def get_features(text,QS,num_rel_sentences):
 
     #print('\n')
     vectorDict = {}
-
-    if QS.doc.text.startswith('How long'):
-        QS.ansType = 'TIME'
-    elif QS.doc.text.startswith('How far'):
-        QS.ansType = 'AMT_COUNTABLE'
     
     for i,score in enumerate(sentenceDict):
         sentence = sentenceDict[score]

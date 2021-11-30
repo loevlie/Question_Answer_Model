@@ -8,7 +8,7 @@ if __name__ == '__main__':
     import spacy
     import csv
 
-    from model import ruleBasedModel
+    from model import neuralNetModel
 
     import warnings
     warnings.filterwarnings('ignore')
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     #context_file = sys.argv[1]
     #question_file = sys.argv[2]
 
-    context_file = 'lincoln.txt'
+    context_file = 'lincolnCoref.txt'
     question_file = 'questionTest.txt'
     
     with open(context_file,encoding='ISO-8859-1') as f:
@@ -54,7 +54,7 @@ if __name__ == '__main__':
             featureVectors = get_features(fullText,QS,3)
 ##            if not any(key.text == actualAnswer for key in featureVectors):
 ##                print('WARNING: actual answer not in candidates')
-            ans = ruleBasedModel(featureVectors)
+            ans = neuralNetModel(featureVectors)
 
             if ans == None:
                 # we didn't find a good answer; try again with more sentences
