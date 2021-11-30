@@ -5,7 +5,7 @@ questionWords = ['when','why','how','what','which','where','who','whom','whose']
 auxWords = ['be','can','could','do','have','may','might','shall','should','will','would']
 subjectPOS = ['nsubj','nsubjpass']
 nounPOS = ['NOUN','PROPN','PRON']
-
+skipPOS = ['VERB','ADP','AUX','CCONJ','SCONJ','PART','DET','ADV']
 
 class ParseNode:
     def __init__(self,token,dep,category,parent=None):
@@ -107,9 +107,10 @@ class QuestionSense:
                 elif nextWord == 'much':
                     self.ansType = 'AMT_UNCOUNTABLE'
                     self.secondaryOp.append(nextWord)
-                elif nextWord == 'long':
+                elif nextWord == 'long' or nextWord == 'old':
                     self.ansType = 'TIME'
                     self.secondaryOp.append(nextWord)
+                
     
         nounPhrases = list(self.doc.noun_chunks)
         self.phraseDic = {p.root:p for p in nounPhrases}
@@ -136,7 +137,9 @@ class QuestionSense:
         children = list(token.children)
 
         opFlag = (self.operativeWord and (self.operativeWord in node.words) or\
-                  any(t.text.lower() == self.operativeWord for t in children))
+                  any(t.text.lower() == self.operativeWord for t in token.subtree))
+
+        strictOpFlag = (self.operativeWord and (self.operativeWord in node.words))
         
         for child in children:
             if child in self.phraseDic or any(p in child.subtree for p in self.phraseDic):
@@ -149,7 +152,7 @@ class QuestionSense:
                 else:
                     continue
 
-        if opFlag:
+        if opFlag and (strictOpFlag or node.POS() not in skipPOS or node.dep in subjectPOS):
             self.analyzeNode(node)
 
         if token in self.phraseDic:
@@ -159,10 +162,16 @@ class QuestionSense:
 
 
     def analyzeNode(self,node):
+        if type(node.token) == spacy.tokens.Token:
+            node.words = [w.text for w in node.token.subtree]
+            token = nlp(''.join(w.text + w.whitespace_ for w in node.token.subtree))
+        else:
+            token = node.token
+        
         indices = [i for i,word in enumerate(node.words) if \
                       word.lower() != self.operativeWord and word.lower() not in self.secondaryOp]
         if indices:
-            self.descriptors = node.token[indices[0]:]
+            self.descriptors = token[indices[0]:]
         else:
             self.descriptors = None
         
