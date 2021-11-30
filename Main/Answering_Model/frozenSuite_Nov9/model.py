@@ -107,17 +107,10 @@ def neuralNetModel(fullDict):
     vectors = tuple(fullDict.values())
     flattenedVec = numpy.hstack(vectors)
     flattenedVec = numpy.hstack((flattenedVec,-1*numpy.ones(30*10 - len(flattenedVec))))
-    print(flattenedVec)
-    probabilities = NN_Model_Use.getProbability(flattenedVec).detach().numpy()[0,:]
-
-    counter = 0
-    for i,ans in enumerate(answers):
-        print(ans,probabilities[i])
-        counter += probabilities[i]
-
-    print('[Padding answers]',1-counter)
     
-    return answers[numpy.argmax(probabilities)]
+    ansIndex = NN_Model_Use.XGBoost_Answer(flattenedVec)
+    
+    return answers[ansIndex]
     
         
         
