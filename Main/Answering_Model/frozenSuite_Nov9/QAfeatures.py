@@ -107,6 +107,9 @@ class QuestionSense:
                 elif nextWord == 'much':
                     self.ansType = 'AMT_UNCOUNTABLE'
                     self.secondaryOp.append(nextWord)
+                elif nextWord == 'long':
+                    self.ansType = 'TIME'
+                    self.secondaryOp.append(nextWord)
     
         nounPhrases = list(self.doc.noun_chunks)
         self.phraseDic = {p.root:p for p in nounPhrases}
@@ -130,8 +133,11 @@ class QuestionSense:
         else:
             node = ParseNode(token,dep,category,parent)
 
-        opFlag = (self.operativeWord and (self.operativeWord in node.words))
         children = list(token.children)
+
+        opFlag = (self.operativeWord and (self.operativeWord in node.words) or\
+                  any(t.text.lower() == self.operativeWord for t in children))
+        
         for child in children:
             if child in self.phraseDic or any(p in child.subtree for p in self.phraseDic):
                 node.children.append(self.DFStree(child,'noun',node))
