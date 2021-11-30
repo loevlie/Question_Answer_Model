@@ -3,7 +3,7 @@ if __name__ == '__main__':
     from Utils import get_features
     import binaryAnswers
     import QAfeatures
-    #from preprocess import preprocess
+    from preprocess import preprocess
     import sys
     import spacy
 
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     with open(question_file) as g:
         questions = g.read().split('\n')
 
-    #raw_text = preprocess(raw_text)
+    raw_text = preprocess(raw_text)
     fullText = nlp(raw_text)
 
     # f = open('an',"w+")
@@ -33,11 +33,32 @@ if __name__ == '__main__':
         QS = QAfeatures.QuestionSense(q)
         if QS.yes_no:
             if not QS.subject:
-                print(QS.doc)
+                print('Binary question failed parse: {}'.format(q))
+                continue
             ans = 'Yes' if binaryAnswers.runThroughSentences(QS,fullText) == True else 'No'
         else:
+            if not QS.questionNode:
+                print('Specific question failed parse: {}'.format(q))
+                continue
             featureVectors = get_features(fullText,QS,3)
             ans = ruleBasedModel(featureVectors)
+
+            if ans == None:
+                # we didn't find a good answer; try again with more sentences
+                featureVectors = get_features(fullText,QS,6)
+##                if not any(key.text == actualAnswer for key in featureVectors):
+##                    print('WARNING: actual answer not in candidates')
+                ans = ruleBasedModel(featureVectors)
+
+            if ans == None:
+                ans = '[NO ANSWER FOUND]'
+            else:
+                fullAns = QAfeatures.fullContext(ans)
+                if not QS.ansType and len(fullAns.split()) < 20:
+                    ans = fullAns
+                else:
+                    ans = ans.text
+            
         print(ans)
 
     # f.close()

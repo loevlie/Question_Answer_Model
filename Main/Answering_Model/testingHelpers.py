@@ -22,3 +22,14 @@ def NBcount(questionText,answerText,contextText):
     else:
         aType = answers[0].label_
     return qType,aType
+
+def questionHasAnswer(listOfAnswers,contextText):
+    context = nlp(contextText)
+    phrases = list(context.noun_chunks)
+    ents = context.ents
+
+    for ans in listOfAnswers:
+        if any(ent.text == ans for ent in ents) or any(p.text == ans for p in phrases):
+            return True
+    
+    return False
