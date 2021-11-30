@@ -61,7 +61,7 @@ if __name__ == '__main__':
                 featureVectors = get_features(fullText,QS,6)
 ##                if not any(key.text == actualAnswer for key in featureVectors):
 ##                    print('WARNING: actual answer not in candidates')
-                ans = ruleBasedModel(featureVectors)
+                ans = neuralNetModel(featureVectors)
 
             if ans == None:
                 ans = '[NO ANSWER FOUND]'
