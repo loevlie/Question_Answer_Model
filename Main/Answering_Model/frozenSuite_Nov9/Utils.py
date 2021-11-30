@@ -41,7 +41,7 @@ def get_features(text,QS,num_rel_sentences):
     
     Q_verbParent = QAfeatures.verbParent(QS.questionChain)
 
-    print('\n')
+    #print('\n')
     vectorDict = {}
 
     if QS.doc.text.startswith('How long'):
@@ -51,7 +51,7 @@ def get_features(text,QS,num_rel_sentences):
     
     for i,score in enumerate(sentenceDict):
         sentence = sentenceDict[score]
-        print('Candidate sentence: {} ({})'.format(sentence,score))
+        #print('Candidate sentence: {} ({})'.format(sentence,score))
         if QS.ansType:
             v0 = 1
             candidates = [ent.root for ent in sentence.ents if ent.root.pos_ != 'PRON']
