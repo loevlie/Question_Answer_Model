@@ -4,6 +4,9 @@ if __name__ == '__main__':
     import binaryAnswers
     import QAfeatures
     #from preprocess import preprocess
+    import dennyCode_modified
+    from QSanalysis import unanswerable
+    
     import sys
     import spacy
     import csv
@@ -51,26 +54,33 @@ if __name__ == '__main__':
             if not QS.questionNode:
                 print('Failed to parse this question: {}'.format(q))
                 continue
-            featureVectors = get_features(fullText,QS,3)
-##            if not any(key.text == actualAnswer for key in featureVectors):
-##                print('WARNING: actual answer not in candidates')
-            ans = neuralNetModel(featureVectors)
 
-            if ans == None:
-                # we didn't find a good answer; try again with more sentences
-                featureVectors = get_features(fullText,QS,6)
-##                if not any(key.text == actualAnswer for key in featureVectors):
-##                    print('WARNING: actual answer not in candidates')
+            if unanswerable(QS):
+                bestDict = dennyCode_modified.find_similar_sentences(fullText,QS.doc,1)
+                ans = list(bestDict.values())[0].text
+
+            else:
+            
+                featureVectors = get_features(fullText,QS,3)
+    ##            if not any(key.text == actualAnswer for key in featureVectors):
+    ##                print('WARNING: actual answer not in candidates')
                 ans = neuralNetModel(featureVectors)
 
-            if ans == None:
-                ans = '[NO ANSWER FOUND]'
-            else:
-                fullAns = QAfeatures.fullContext(ans)
-                if not QS.ansType and len(fullAns.split()) < 20:
-                    ans = fullAns
+                if ans == None:
+                    # we didn't find a good answer; try again with more sentences
+                    featureVectors = get_features(fullText,QS,6)
+    ##                if not any(key.text == actualAnswer for key in featureVectors):
+    ##                    print('WARNING: actual answer not in candidates')
+                    ans = neuralNetModel(featureVectors)
+
+                if ans == None:
+                    ans = '[NO ANSWER FOUND]'
                 else:
-                    ans = ans.text
+                    fullAns = QAfeatures.fullContext(ans)
+                    if not QS.ansType and len(fullAns.split()) < 20:
+                        ans = fullAns
+                    else:
+                        ans = ans.text
         print('We think the answer is: ' + ans)
         #print('Actual answer: ' + actualAnswer)
 

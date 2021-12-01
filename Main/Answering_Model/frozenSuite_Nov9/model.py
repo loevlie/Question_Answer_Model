@@ -109,6 +109,7 @@ def neuralNetModel(fullDict):
     flattenedVec = numpy.hstack((flattenedVec,-1*numpy.ones(30*10 - len(flattenedVec))))
     
     ansIndex = NN_Model_Use.XGBoost_Answer(flattenedVec)
+    print(ansIndex)
     
     return answers[ansIndex]
     
