@@ -113,6 +113,11 @@ def neuralNetModel(fullDict):
     if len(answers)!=30:
         print(f"NOT WORKING {len(answers)}")
     
+<<<<<<< HEAD
+    ansIndex = NN_Model_Use.XGBoost_Answer(flattenedVec)
+    print(ansIndex)
+=======
+>>>>>>> 620a6429be44c78dc478d0c325222550bb7f91d3
     
     random_indices = np.arange(30)
     np.random.shuffle(random_indices)
