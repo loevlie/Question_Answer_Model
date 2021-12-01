@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
+import numpy as np
 
 class Model(nn.Module):
 
@@ -111,6 +112,6 @@ XGB.load_model('XGBoost.model')
 
 def XGBoost_Answer(feature_list):
     feature = xgb.DMatrix(np.array([feature_list]).reshape(1,300))
-    ans = XGB.predict(feature)
+    ans = np.argmax(XGB.predict(feature))
     return ans
     
