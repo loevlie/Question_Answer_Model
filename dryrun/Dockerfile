@@ -42,6 +42,7 @@ ADD helpers.py /QA
 ADD model.py /QA
 ADD preprocess.py /QA
 ADD QAfeatures.py /QA
+ADD QSanalysis.py /QA
 ADD Utils.py /QA
 
 WORKDIR /QA
