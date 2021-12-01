@@ -46,10 +46,10 @@ ADD preprocess.py /QA
 ADD QAfeatures.py /QA
 ADD QSanalysis.py /QA
 ADD Utils.py /QA
+WORKDIR /QA
 RUN dos2unix answer
 RUN dos2unix ask
 
-WORKDIR /QA
 
 RUN ["chmod", "+x", "./answer"]
 RUN ["chmod", "+x", "./ask"]
