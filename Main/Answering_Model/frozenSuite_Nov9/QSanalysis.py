@@ -6,10 +6,10 @@ def unanswerable(QS):
     if QS.operativeWord == 'how' and not QS.ansType:
         return True
     if QS.operativeWord == 'what':
-        print('what')
+        
         whatToken = [t for t in QS.doc if t.text.lower()=='what'][0]
         if any(t.lemma_ == 'happen' for t in QS.doc[whatToken.i:]):
-            print('happen')
+            
             return True
         if QS.doc[whatToken.i + 1].lemma_ == 'do':
             nextWords = [t.lemma_ for t in QS.doc[whatToken.i + 2:]]

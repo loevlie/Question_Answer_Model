@@ -113,13 +113,13 @@ def neuralNetModel(fullDict):
     if len(answers)!=30:
         print(f"NOT WORKING {len(answers)}")
     
-    #ansIndex = NN_Model_Use.XGBoost_Answer(flattenedVec)
-    #print(ansIndex)
-    
     random_indices = np.arange(30)
     np.random.shuffle(random_indices)
     vectors = np.array(vectors)[random_indices]
     answers = np.array(answers)[random_indices]
+    #print(vectors)
+    #print()
+    #print(answers)
     #flattenedVec = numpy.hstack(vectors)
     #flattenedVec = numpy.hstack((flattenedVec,-1*numpy.ones(30*10 - len(flattenedVec))))
     #print(

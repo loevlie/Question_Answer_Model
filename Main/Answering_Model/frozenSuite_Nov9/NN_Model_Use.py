@@ -114,5 +114,6 @@ def XGBoost_Answer(feature_list):
     
     feature = xgb.DMatrix(feature_list.reshape(1,300))
     ans = np.argmax(XGB.predict(feature))
+    print(XGB.predict(feature))
     return ans
     
