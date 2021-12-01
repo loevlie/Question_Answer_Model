@@ -17,24 +17,32 @@ def runThroughSentences(QS,doc):
     subjectHead = subjectToken if type(subjectToken)==spacy.tokens.Token \
                   else subjectToken.root
 
-    predicateToken = QS.predicate.token
-    predicateHead = predicateToken if type(predicateToken)==spacy.tokens.Token \
-                    else predicateToken.root
+    if QS.predicate:
+        predicateToken = QS.predicate.token
+        predicateHead = predicateToken if type(predicateToken)==spacy.tokens.Token \
+                        else predicateToken.root
 
-    subjectFixed,predicateFixed = nlp(subjectHead.lemma_),nlp(predicateHead.lemma_)
+    subjectFixed = nlp(subjectHead.lemma_)
+    if QS.predicate:
+        predicateFixed = nlp(predicateHead.lemma_)
 
     sentenceList = []
     k = None
     
     for s in doc.sents:
         subjMatches = [word for word in s if word.lemma_ == subjectHead.lemma_]
-        predMatches = [word for word in s if word.lemma_ == predicateHead.lemma_]
+        if QS.predicate:
+            predMatches = [word for word in s if word.lemma_ == predicateHead.lemma_]
+        else:
+            predMatches = []
+        
         if not subjMatches and not predMatches:
             continue
         elif subjMatches and not predMatches:
-            predVec = np.array([word.similarity(predicateFixed) for word in s if word.text.strip()])
-            if np.max(predVec) < 0.85:
-                continue
+            if QS.predicate:
+                predVec = np.array([word.similarity(predicateFixed) for word in s if word.text.strip()])
+                if np.max(predVec) < 0.85:
+                    continue
             
         elif predMatches and not subjMatches:
             subjVec = np.array([word.similarity(subjectFixed) for word in s if word.text.strip()])
@@ -123,8 +131,11 @@ def compareStructures(QS,tup):
             
             return None
     #print('Subjects match ({} <-> {} = {}).'.format(fixedQsubj,fixedAsubj,sim))
-    
-    return matchPredicates(QS,AS)
+
+    if QS.predicate:
+        return matchPredicates(QS,AS)
+    else:
+        return matchGullets(QS,AS)
 
 def matchPredicates(QS,AS):
     sim = helpers.fixedSimilarity(QS.predicate.token,AS.predicate.token)
