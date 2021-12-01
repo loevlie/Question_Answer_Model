@@ -104,18 +104,27 @@ def ruleBasedModel(fullDict):
 def neuralNetModel(fullDict):
     import NN_Model_Use
     import numpy as np
+    Padding = [[-1]*10]
     answers = list(fullDict.keys())
-    vectors = tuple(fullDict.values())
-    flattenedVec = numpy.hstack(vectors)
-    flattenedVec = numpy.hstack((flattenedVec,-1*numpy.ones(30*10 - len(flattenedVec))))
-    indices = np.arange(len(answers))
-    random_indices = np.random.shuffle(indices)
-    flattenVec = flattenedVec[random_indices]
-    print(flattenedVec)
-    ansIndex = NN_Model_Use.XGBoost_Answer(flattenVec)
+    vectors = list(fullDict.values())
+    if len(vectors) < 30:
+        vectors.extend(Padding*(30-len(vectors)))
+        answers.extend(['NA']*(30-len(answers)))
+    if len(answers)!=30:
+        print(f"NOT WORKING {len(answers)}")
+    
+    
+    random_indices = np.arange(30)
+    np.random.shuffle(random_indices)
+    vectors = np.array(vectors)[random_indices]
+    answers = np.array(answers)[random_indices]
+    #flattenedVec = numpy.hstack(vectors)
+    #flattenedVec = numpy.hstack((flattenedVec,-1*numpy.ones(30*10 - len(flattenedVec))))
+    #print(
+    ansIndex = NN_Model_Use.XGBoost_Answer(vectors)
     print(ansIndex)
-    print(answers[random_indices][ansIndex])
-    return answers[random_indices][ansIndex]
+    print(answers[ansIndex])
+    return answers[ansIndex]
     
         
         
