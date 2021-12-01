@@ -26,6 +26,8 @@ RUN apt-get -y install git
 
 RUN apt-get update
 
+RUN apt-get install dos2unix
+
 RUN pip3 install git+https://github.com/msg-systems/coreferee.git#egg=coreferee
 RUN pip3 install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.1.0/en_core_web_sm-3.1.0.tar.gz
 RUN python3 -m coreferee install en
@@ -44,6 +46,8 @@ ADD preprocess.py /QA
 ADD QAfeatures.py /QA
 ADD QSanalysis.py /QA
 ADD Utils.py /QA
+RUN dos2unix answer
+RUN dos2unix ask
 
 WORKDIR /QA
 
