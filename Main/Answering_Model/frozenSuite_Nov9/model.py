@@ -107,10 +107,13 @@ def neuralNetModel(fullDict):
     vectors = tuple(fullDict.values())
     flattenedVec = numpy.hstack(vectors)
     flattenedVec = numpy.hstack((flattenedVec,-1*numpy.ones(30*10 - len(flattenedVec))))
-    
+    indices = np.arrange(len(answers))
+    random_indexs = np.random.shuffle(indices)
+    flattenVec = FlattenVec[random_indices]
+    print(flattenedVec)
     ansIndex = NN_Model_Use.XGBoost_Answer(flattenedVec)
-    
-    return answers[ansIndex]
+    print(ansIndex)
+    return answers[random_indices][ansIndex]
     
         
         
