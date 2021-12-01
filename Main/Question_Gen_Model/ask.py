@@ -4,9 +4,12 @@ from numpy import append
 import spacy
 import inflect
 import sys
-# import preprocess
+import preprocess
 import random
-# from spacy import displacy
+from spacy import displacy
+import warnings
+warnings.filterwarnings('ignore')
+
 nlp = spacy.load('en_core_web_md')
 joiningPOS = ['PUNCT','CCONJ','SCONJ']
 questions = []
@@ -94,7 +97,6 @@ def splitIntoClauses(doc):
             continue
         clauseSubj = [c for c in clause.root.children if c.dep_ == 'nsubj' or c.dep_ == 'nsubjpass' or c.dep_ =='attr']
         if not clauseSubj and clause[0].pos_ not in joiningPOS:
-            #print('Want to append a subject to clause "{}"'.format(clause))
             subjToken = subj[0]
             clause = nlp(subjToken.text + ' ' + clause.text)
         nClauses.append(clause)
@@ -118,11 +120,6 @@ def splitClausesFully(doc):
 def generate_questions(corpus):
 
     p = inflect.engine()
-    # corpus = "Often considered the best player in the world and widely regarded as one of the greatest players of all time, Ronaldo has won five Ballon d'Or awards and four European Golden Shoes, the most by a European player."
-    # corpus = "Cristiano Ronaldo is from Portugal. I am going to the toilet. The book is on the shelf. My grandpa died in Egypt. I am getting it from Qatar. I got it from Qatar."
-    # corpus = "Crisitano Ronaldo is going to Cambodia and I will go to Qatar. Antetoukompu took them to the finals."
-    # corpus = "The man in the blue jeans cooked us dinner. Cristiano Ronaldo has been playing for Manchester United for 5 months. I got it from Qatar. I have been studying for a week. I play for the varsity team. Cristiano Ronaldo will transfer to Manchester United on the 6th of January."
-
     corpus = corpus.strip(".")
     sentences = corpus.split(". ")
 
@@ -132,20 +129,29 @@ def generate_questions(corpus):
 
         for c in cs:
             doc = nlp(c)
-            # displacy.render(doc, style="ent")
+            displacy.render(doc, style="ent")
+            best_question = ""
+            best_question_score = 0
             named_entities = {}
             for ent in doc.ents:
                 named_entities[ent.text] = ent.label_
             all_words = []
             for tok in doc:
                 all_words.append(tok)
-            
             #----------------------------------------------------------- Who Questions -----------------------------------------------------------
             for chunk in doc.noun_chunks:
             
                 if chunk.text in named_entities and named_entities[chunk.text] == "PERSON":
-                    questions.append("Who is " + chunk.text +"?")
-
+                    q = "Who is " + chunk.text +"?"
+                    similar = False
+                    if q in questions:
+                        similar = True
+                    if similar == False:
+                        sim = nlp(q).similarity(doc)
+                        if sim > best_question_score:
+                            best_question = q
+                            best_question_score = sim
+                    
                 if chunk.root.dep_ == "nsubj" or chunk.root.dep_ == "nsubjpass":
                     rest_of_sentence = ""
                     start_index = list(chunk)[-1].i + 1
@@ -166,7 +172,16 @@ def generate_questions(corpus):
                             rest_of_sentence += all_words[i].text + " "
         
                     rest_of_sentence = rest_of_sentence.strip()
-                    questions.append("Who " + rest_of_sentence + "?")
+                    q = "Who " + rest_of_sentence + "?"
+                    similar = False
+                    if q in questions:
+                        similar = True
+                    if similar == False:
+                        sim = nlp(q).similarity(doc)
+                        if sim > best_question_score:
+                            best_question = q
+                            best_question_score = sim
+
 
             #----------------------------------------------------------- Where Questions -----------------------------------------------------------
             dobj = ""
@@ -208,7 +223,8 @@ def generate_questions(corpus):
                         else:
                             verb = root.lemma_
                             phrase = "Where did " + subject_text + " " + verb
-        
+
+                    
                     elif root.pos_ == "AUX" and (root.morph.get("VerbForm")[0] == "Inf" or root.morph.get('Tense')[0] == "Pres"):
                         if list(root.lefts)[-1].pos_ == "AUX" :
                             verb = ""
@@ -228,10 +244,16 @@ def generate_questions(corpus):
                 if chunk.root.dep_ == "dobj":
                     dobj = chunk.text + " "
 
+                b = False
                 if chunk.root.dep_ == "pobj":
-                    if chunk.text in named_entities:
-                        if named_entities[chunk.text] == "TIME" or named_entities[chunk.text] == "DATE":
-                            continue
+                    for entity in named_entities:
+                        if chunk.text in entity:
+                            if named_entities[entity] == "TIME" or named_entities[entity] == "DATE":
+                                b = True
+                                break
+                    if b:
+                        continue
+
                     if chunk.root.head.text == "from" and (root.pos_ == "AUX" or root.pos_ == "VERB"):
                         prep = "from "
                     elif chunk.root.head.text == "to" and (root.pos_ == "AUX" or root.pos_ == "VERB"):
@@ -247,101 +269,126 @@ def generate_questions(corpus):
                         rest_of_sentence += all_words[i].text + " "
                     rest_of_sentence = rest_of_sentence.strip()
                     if prep_phrase.root.head.head == subject.root.head:
-                        questions.append((phrase + " " +  dobj + prep + rest_of_sentence).strip() + "?")
+                        q = (phrase + " " +  dobj + prep + rest_of_sentence).strip() + "?"
+                        similar = False
+                        if q in questions:
+                            similar = True
+                        if similar == False:
+                            sim = nlp(q).similarity(doc)
+                            if sim > best_question_score:
+                                best_question = q
+                                best_question_score = sim
 
-            #----------------------------------------------------------- When Questions -----------------------------------------------------------
-            # dobj = ""
-            # for chunk in doc.noun_chunks:
-            #     if chunk.root.dep_ == "nsubj":
 
-            #         subject = chunk
+            # ----------------------------------------------------------- When Questions -----------------------------------------------------------
+            dobj = ""
+            for chunk in doc.noun_chunks:
+                if chunk.root.dep_ == "nsubj":
 
-            #         if chunk.text not in named_entities and chunk.text != "I":
-            #             subject_text = chunk.text.lower()
-            #         else:
-            #             subject_text = chunk.text
+                    subject = chunk
 
-            #         root = chunk.root.head
-            #         if root.pos_ == "VERB" and (root.morph.get("VerbForm")[0] == "Inf" or root.morph.get('Tense')[0] == "Pres"):
-            #             if len(list(root.lefts)) > 2 and list(root.lefts)[-1].pos_ == "AUX" and list(root.lefts)[-2].pos_ == "AUX":
-            #                 aux1 = list(root.lefts)[-2].text
-            #                 aux2 = list(root.lefts)[-1].text
-            #                 verb = root.text
-            #                 phrase = "When " + aux1 + " " + subject_text + " " + aux2 + " " + verb
+                    if chunk.text not in named_entities and chunk.text != "I":
+                        subject_text = chunk.text.lower()
+                    else:
+                        subject_text = chunk.text
 
-            #             elif list(root.lefts)[-1].pos_ == "AUX":
-            #                 aux = list(root.lefts)[-1].text
-            #                 verb = root.text
-            #                 phrase = "When " + aux + " " + subject_text + " " + verb
+                    root = chunk.root.head
+                    if root.pos_ == "VERB" and (root.morph.get("VerbForm")[0] == "Inf" or root.morph.get('Tense')[0] == "Pres"):
+                        if len(list(root.lefts)) > 2 and list(root.lefts)[-1].pos_ == "AUX" and list(root.lefts)[-2].pos_ == "AUX":
+                            aux1 = list(root.lefts)[-2].text
+                            aux2 = list(root.lefts)[-1].text
+                            verb = root.text
+                            phrase = "When " + aux1 + " " + subject_text + " " + aux2 + " " + verb
 
-            #             else:
-            #                 verb = root.lemma_
-            #                 if subject_text == "I":
-            #                     phrase = "When do " + subject_text + " " + verb
-            #                 else:
-            #                     phrase = "When does " + subject_text + " " + verb
+                        elif list(root.lefts)[-1].pos_ == "AUX":
+                            aux = list(root.lefts)[-1].text
+                            verb = root.text
+                            phrase = "When " + aux + " " + subject_text + " " + verb
+
+                        else:
+                            verb = root.lemma_
+                            if subject_text == "I":
+                                phrase = "When do " + subject_text + " " + verb
+                            else:
+                                phrase = "When does " + subject_text + " " + verb
                         
-            #         elif root.pos_ == "VERB" and root.morph.get('Tense')[0] == "Past":
-            #             if list(root.lefts)[-1].pos_ == "AUX":
-            #                 aux = list(root.lefts)[-1].text
-            #                 verb = root.text
-            #                 phrase = "When " + aux + " " + subject_text + " " + verb
-            #             else:
-            #                 verb = root.lemma_
-            #                 phrase = "When did " + subject_text + " " + verb
+                    elif root.pos_ == "VERB" and root.morph.get('Tense')[0] == "Past":
+                        if list(root.lefts)[-1].pos_ == "AUX":
+                            aux = list(root.lefts)[-1].text
+                            verb = root.text
+                            phrase = "When " + aux + " " + subject_text + " " + verb
+                        else:
+                            verb = root.lemma_
+                            phrase = "When did " + subject_text + " " + verb
         
-            #         elif root.pos_ == "AUX" and (root.morph.get("VerbForm")[0] == "Inf" or root.morph.get('Tense')[0] == "Pres"):
-            #             if list(root.lefts)[-1].pos_ == "AUX" :
-            #                 verb = ""
-            #                 phrase = "When " + list(root.lefts)[-1].text + " " + root.text + " " + subject_text
-            #             else:
-            #                 verb = ""
-            #                 phrase = "When " + root.text + " " + subject_text 
+                    elif root.pos_ == "AUX" and (root.morph.get("VerbForm")[0] == "Inf" or root.morph.get('Tense')[0] == "Pres"):
+                        if list(root.lefts)[-1].pos_ == "AUX" :
+                            verb = ""
+                            phrase = "When " + list(root.lefts)[-1].text + " " + root.text + " " + subject_text
+                        else:
+                            verb = ""
+                            phrase = "When " + root.text + " " + subject_text 
                             
-            #         elif root.pos_ == "AUX" and root.morph.get('Tense')[0] == "Past":
-            #             if list(root.lefts)[-1].pos_ == "AUX":
-            #                 verb = ""
-            #                 phrase = "When " + list(root.lefts)[-1].text + " " + root.text + " " + subject_text 
-            #             else:
-            #                 verb = ""
-            #                 phrase = "When " + root.text + " " + subject_text
+                    elif root.pos_ == "AUX" and root.morph.get('Tense')[0] == "Past":
+                        if list(root.lefts)[-1].pos_ == "AUX":
+                            verb = ""
+                            phrase = "When " + list(root.lefts)[-1].text + " " + root.text + " " + subject_text 
+                        else:
+                            verb = ""
+                            phrase = "When " + root.text + " " + subject_text
 
-            #     if chunk.root.dep_ == "dobj":
-            #         dobj = chunk.text + " "
+                if chunk.root.dep_ == "dobj":
+                    dobj = chunk.text + " "
 
-            #     if chunk.root.dep_ == "pobj":
-            #         if chunk.root.head.text == "on" or chunk.root.head.text == "in" or chunk.root.head.text == "at":
-            #             if chunk.text in named_entities:
-            #                 if named_entities[chunk.text] == "TIME" or named_entities[chunk.text] =="DATE":
-            #                     prep = ""
-            #                     prep_phrase = chunk
-            #                     rest_of_sentence = ""
-            #                     start_index = list(chunk)[-1].i + 1
-            #                     for i in range(start_index, len(all_words)):
-            #                         rest_of_sentence += all_words[i].text + " "
-            #                     rest_of_sentence = rest_of_sentence.strip()
-            #                     if prep_phrase.root.head.head == subject.root.head:
-            #                         print((phrase + " " +  dobj + prep + rest_of_sentence).strip() + "?")
+                if chunk.root.dep_ == "pobj":
+                    if chunk.root.head.text == "on" or chunk.root.head.text == "in" or chunk.root.head.text == "at":
+                        b = False
+                        if chunk.root.dep_ == "pobj":
+                            for entity in named_entities:
+                                if chunk.text in entity:
+                                    if named_entities[entity] != "TIME" and named_entities[entity] != "DATE":
+                                        b = True
+                                        break
                             
-            #                 else:
-            #                     continue
-            #             else:
-            #                 continue
-            #         else:
-            #             continue
+                            if b:
+                                continue
+                            
+                            rest_of_sentence = ""
+                            start_index = root.i + 1
+                            end_index = chunk.root.head.i
+                            for i in range(start_index, end_index):
+                                rest_of_sentence += all_words[i].text + " "
+                            rest_of_sentence = rest_of_sentence.strip()
+                            if prep_phrase.root.head.head == subject.root.head:
+                                q = (phrase + " " +  dobj + rest_of_sentence).strip() + "?"
+                                similar = False
+                                if q in questions:
+                                    similar = True
+                                if similar == False:
+                                    sim = nlp(q).similarity(doc)
+                                    if sim > best_question_score:
+                                        best_question = q
+                                        best_question_score = sim
+                        else:
+                            continue
+                    else:
+                        continue
+            questions.append(best_question)
     return questions
 
 if __name__ == '__main__':
     corpus = open(sys.argv[1], "r").read()
     question_n = int(sys.argv[2])
-    # corpus = preprocess(corpus.text)
-    # corpus = input("Enter a sentence .> ")
+    corpus = preprocess(corpus.text)
     if corpus:
         generated = generate_questions(corpus)
         if question_n > len(generated):
-            generated = random.sample(generated, k=len(generated))
+            generated_f = random.sample(generated, k_f=len(generated))
+            generated_f.append("Question Limit Exceeded.")
         else:
-            generated = random.sample(generated, k=question_n)
-        
-        for question in generated:
+            generated_f = random.sample(generated, k=question_n)     
+        for question in generated_f:
+            if question == "":
+                question = random.choice(generated)
             print(question)
+    # print(generate_questions())
