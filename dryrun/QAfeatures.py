@@ -5,7 +5,7 @@ questionWords = ['when','why','how','what','which','where','who','whom','whose']
 auxWords = ['be','can','could','do','have','may','might','shall','should','will','would']
 subjectPOS = ['nsubj','nsubjpass']
 nounPOS = ['NOUN','PROPN','PRON']
-
+skipPOS = ['VERB','ADP','AUX','CCONJ','SCONJ','PART','DET','ADV']
 
 class ParseNode:
     def __init__(self,token,dep,category,parent=None):
@@ -79,8 +79,11 @@ class QuestionSense:
             wordList = self.doc.text.lower().split()
             operativeWords = [q for q in questionWords if q in wordList]
             if len(operativeWords) > 1:
-                raise Warning('WARNING: more than one operative word found (' + \
+                operativeWords = [w for w in operativeWords if w != 'when']
+                if len(operativeWords) > 1:
+                    raise Warning('WARNING: more than one operative word found (' + \
                       ', '.join('"' + w + '"' for w in operativeWords) + ').')
+        
             if not operativeWords:
                 raise Warning('Error: this question could not be resolved.')
                 return
@@ -104,6 +107,10 @@ class QuestionSense:
                 elif nextWord == 'much':
                     self.ansType = 'AMT_UNCOUNTABLE'
                     self.secondaryOp.append(nextWord)
+                elif nextWord == 'long' or nextWord == 'old':
+                    self.ansType = 'TIME'
+                    self.secondaryOp.append(nextWord)
+                
     
         nounPhrases = list(self.doc.noun_chunks)
         self.phraseDic = {p.root:p for p in nounPhrases}
@@ -127,8 +134,13 @@ class QuestionSense:
         else:
             node = ParseNode(token,dep,category,parent)
 
-        opFlag = (self.operativeWord and (self.operativeWord in node.words))
         children = list(token.children)
+
+        opFlag = (self.operativeWord and (self.operativeWord in node.words) or\
+                  any(t.text.lower() == self.operativeWord for t in token.subtree))
+
+        strictOpFlag = (self.operativeWord and (self.operativeWord in node.words))
+        
         for child in children:
             if child in self.phraseDic or any(p in child.subtree for p in self.phraseDic):
                 node.children.append(self.DFStree(child,'noun',node))
@@ -140,7 +152,7 @@ class QuestionSense:
                 else:
                     continue
 
-        if opFlag:
+        if opFlag and (strictOpFlag or node.POS() not in skipPOS or node.dep in subjectPOS):
             self.analyzeNode(node)
 
         if token in self.phraseDic:
@@ -150,10 +162,16 @@ class QuestionSense:
 
 
     def analyzeNode(self,node):
+        if type(node.token) == spacy.tokens.Token:
+            node.words = [w.text for w in node.token.subtree]
+            token = nlp(''.join(w.text + w.whitespace_ for w in node.token.subtree))
+        else:
+            token = node.token
+        
         indices = [i for i,word in enumerate(node.words) if \
                       word.lower() != self.operativeWord and word.lower() not in self.secondaryOp]
         if indices:
-            self.descriptors = node.token[indices[0]:]
+            self.descriptors = token[indices[0]:]
         else:
             self.descriptors = None
         
@@ -294,7 +312,7 @@ class AnswerSense:
                     modifiers.append(node)
             
         if not candidatePhrases:
-            print('Could not resolve this answer as a binary comparison')
+            #print('Could not resolve this answer as a binary comparison')
             self.subject,self.predicate = None,None
             return
         
@@ -369,6 +387,20 @@ def verbParent(chain):
     if verbs: # well, I guess we have only auxiliary verbs
         return verbs[0] # return the closest one
     return None # give up
+
+def fullContext(token):
+    lefts,rights = list(token.lefts),list(token.rights)
+    if not lefts and not rights:
+        return token.text
+    msg = ''
+    for leftChild in lefts:
+        msg += fullContext(leftChild) + ' '
+    msg += token.text + ' '
+    for rightChild in rights:
+        msg += fullContext(rightChild) + ' '
+    if msg[-1] == ' ':
+        msg = msg[:-1]
+    return msg
 
 
 if __name__ == '__main__':

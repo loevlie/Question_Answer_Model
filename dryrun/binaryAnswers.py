@@ -10,28 +10,39 @@ nlp = spacy.load('en_core_web_md')
 import QAfeatures
 import helpers
 
+uselessGullets = ['ever','sometimes','once']
+
 def runThroughSentences(QS,doc):
     subjectToken = QS.subject.token
     subjectHead = subjectToken if type(subjectToken)==spacy.tokens.Token \
                   else subjectToken.root
 
-    predicateToken = QS.predicate.token
-    predicateHead = predicateToken if type(predicateToken)==spacy.tokens.Token \
-                    else predicateToken.root
+    if QS.predicate:
+        predicateToken = QS.predicate.token
+        predicateHead = predicateToken if type(predicateToken)==spacy.tokens.Token \
+                        else predicateToken.root
 
-    subjectFixed,predicateFixed = nlp(subjectHead.lemma_),nlp(predicateHead.lemma_)
+    subjectFixed = nlp(subjectHead.lemma_)
+    if QS.predicate:
+        predicateFixed = nlp(predicateHead.lemma_)
 
     sentenceList = []
+    k = None
     
     for s in doc.sents:
         subjMatches = [word for word in s if word.lemma_ == subjectHead.lemma_]
-        predMatches = [word for word in s if word.lemma_ == predicateHead.lemma_]
+        if QS.predicate:
+            predMatches = [word for word in s if word.lemma_ == predicateHead.lemma_]
+        else:
+            predMatches = []
+        
         if not subjMatches and not predMatches:
             continue
         elif subjMatches and not predMatches:
-            predVec = np.array([word.similarity(predicateFixed) for word in s if word.text.strip()])
-            if np.max(predVec) < 0.85:
-                continue
+            if QS.predicate:
+                predVec = np.array([word.similarity(predicateFixed) for word in s if word.text.strip()])
+                if np.max(predVec) < 0.85:
+                    continue
             
         elif predMatches and not subjMatches:
             subjVec = np.array([word.similarity(subjectFixed) for word in s if word.text.strip()])
@@ -120,8 +131,11 @@ def compareStructures(QS,tup):
             
             return None
     #print('Subjects match ({} <-> {} = {}).'.format(fixedQsubj,fixedAsubj,sim))
-    
-    return matchPredicates(QS,AS)
+
+    if QS.predicate:
+        return matchPredicates(QS,AS)
+    else:
+        return matchGullets(QS,AS)
 
 def matchPredicates(QS,AS):
     sim = helpers.fixedSimilarity(QS.predicate.token,AS.predicate.token)
@@ -131,8 +145,8 @@ def matchPredicates(QS,AS):
         return matchGullets(QS,AS)
     else:
         #print('Predicates do not match  ({} <-> {} = {}). Trying to fix.'.format(QS.predicate.token,\
-        #                                    AS.predicate.token,sim))
-        usingQmatchA = [p for p in AS.nodeDic if helpers.fixedSimilarity(p,QS.predicate.token) >= 0.85]
+        #                                   AS.predicate.token,sim))
+        usingQmatchA = [p for p in AS.nodeDic if helpers.fixedSimilarity(p,QS.predicate.token) >= 0.85 and p.root.dep_ != 'nsubj']
         usingAmatchQ = [p for p in QS.doc.noun_chunks if helpers.fixedSimilarity(p,AS.predicate.token) >= 0.85]
         if not usingQmatchA and not usingAmatchQ:
             #print('Cannot fix predicate disparity. Sentence is useless.')
@@ -164,7 +178,11 @@ def matchPredicates(QS,AS):
             
             else:
                 #print('Node is in question gullet.')
-                gulletParent = nodeChain[-2]
+                try:
+                    gulletParent = nodeChain[-2]
+                except IndexError:
+                    gulletParent = QS.treeRoot
+                    
                 if gulletParent.POS() == 'CCONJ' or gulletParent.POS() == 'SCONJ':
                     #print('Parent is a conjunction. This should be handled through clauses.')
                     return None
@@ -270,7 +288,7 @@ def matchGullets(QS,AS):
         return False
     
     for particleNode in QS.gullets:
-        if particleNode.POS() == 'AUX':
+        if particleNode.token.text in uselessGullets or particleNode.POS() == 'AUX':
             continue
         elif particleNode.POS() == 'ADP':
             particleNode = particleNode.children[0]
