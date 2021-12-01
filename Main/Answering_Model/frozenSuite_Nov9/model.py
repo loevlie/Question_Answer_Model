@@ -45,7 +45,7 @@ def ruleBasedModel(fullDict):
         finalAnswers = [ans for i,ans in enumerate(bestBatch) if fineGrained[i] == max(fineGrained)]
         if len(finalAnswers) == 1:
             return finalAnswers[0]
-        print('Warning: we have a tie between great answers')
+        #print('Warning: we have a tie between great answers')
         return random.choice(finalAnswers) # oh, just give up
 
     bestScore,bestAns = 0,None
@@ -93,12 +93,12 @@ def ruleBasedModel(fullDict):
             if len(bestAns) == 1:
                 return bestAns[0]
             else:
-                print('Warning: we have a tie between okay answers')
+                #print('Warning: we have a tie between okay answers')
                 return bestAns
         else:  
             return bestAns
 
-    print('Warning: we have not found even a somewhat passable answer')
+    #print('Warning: we have not found even a somewhat passable answer')
     return None
 
 def neuralNetModel(fullDict):

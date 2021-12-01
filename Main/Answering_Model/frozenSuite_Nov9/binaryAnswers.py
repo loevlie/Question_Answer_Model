@@ -178,7 +178,11 @@ def matchPredicates(QS,AS):
             
             else:
                 #print('Node is in question gullet.')
-                gulletParent = nodeChain[-2]
+                try:
+                    gulletParent = nodeChain[-2]
+                except IndexError:
+                    gulletParent = QS.treeRoot
+                    
                 if gulletParent.POS() == 'CCONJ' or gulletParent.POS() == 'SCONJ':
                     #print('Parent is a conjunction. This should be handled through clauses.')
                     return None

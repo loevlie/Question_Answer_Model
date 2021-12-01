@@ -3,10 +3,12 @@ if __name__ == '__main__':
     from Utils import get_features
     import binaryAnswers
     import QAfeatures
+    import dennyCode_modified
     from preprocess import preprocess
     import sys
     import spacy
 
+    from QSanalysis import unanswerable
     from model import ruleBasedModel
 
     import warnings
@@ -18,7 +20,7 @@ if __name__ == '__main__':
     context_file = sys.argv[1]
     question_file = sys.argv[2]
 
-    with open(context_file) as f:
+    with open(context_file,encoding='ISO-8859-1') as f:
         raw_text = f.read() 
 
     with open(question_file) as g:
@@ -60,6 +62,8 @@ if __name__ == '__main__':
                 if ans == None:
                     ans = '[NO ANSWER FOUND]'
                 else:
+                    if type(ans) == list:
+                        ans = ans[0]
                     fullAns = QAfeatures.fullContext(ans)
                     if not QS.ansType and len(fullAns.split()) < 20:
                         ans = fullAns
