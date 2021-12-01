@@ -200,7 +200,7 @@ def matchPredicates(QS,AS):
                 else:
                     #print('Parent is something else. Boot predicate to gullet and replace.')
                     QS.gullets.append(QS.predicate)
-                    if gulletParent in QS.gullets:
+                    if gulletParent in QS.gullets and gulletParent != QS.treeRoot:
                         QS.gullets.remove(gulletParent)
 
                     gulletText = QS.rootToken.text if gulletParent.POS() != 'VERB' else ''
