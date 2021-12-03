@@ -288,7 +288,7 @@ def generate_questions(corpus):
                             similar = True
                         if similar == False:
                             sim = nlp(q).similarity(doc)
-                            if sim > best_question_score and where_question_count<=Average_count:
+                            if sim > best_question_score and where_question_count<=5:
                                 best_question = q
                                 best_question_score = sim
                                 where_question_count+=1
