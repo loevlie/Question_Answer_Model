@@ -130,7 +130,7 @@ def generate_questions(corpus):
     p = inflect.engine()
     corpus = corpus.strip(".")
     sentences = corpus.split(". ")
-when_question_count = 0
+    when_question_count = 0
     where_question_count = 0
     who_question_count=0
     import math
