@@ -104,29 +104,34 @@ def ruleBasedModel(fullDict):
 def neuralNetModel(fullDict):
     import NN_Model_Use
     import numpy as np
-    Padding = [[-1]*10]
-    answers = list(fullDict.keys())
-    vectors = list(fullDict.values())
+    
+    answers = np.array(list(fullDict.keys()))
+    vectors = np.array(list(fullDict.values()))
+    Padding = np.ones((30-vectors.shape[0],vectors.shape[1]))
     if len(vectors) < 30:
-        vectors.extend(Padding*(30-len(vectors)))
-        answers.extend(['NA']*(30-len(answers)))
+        vectors = np.concatenate((vectors,Padding))
+        #vectors.extend(Padding*(30-len(vectors)))
+        np.append((answers,np.array(['NA']*(30-len(answers)))))
+        #answers.extend(['NA']*(30-len(answers)))
     if len(answers)!=30:
         print(f"NOT WORKING {len(answers)}")
     
     random_indices = np.arange(30)
     np.random.shuffle(random_indices)
-    vectors = np.array(vectors)[random_indices]
-    answers = np.array(answers)[random_indices]
-    #print(vectors)
-    #print()
-    #print(answers)
+    vectors = vectors[random_indices]
+    answers = answers[random_indices]
+    print(vectors)
+    print()
+    print(answers)
     #flattenedVec = numpy.hstack(vectors)
     #flattenedVec = numpy.hstack((flattenedVec,-1*numpy.ones(30*10 - len(flattenedVec))))
     #print(
     ansIndex = NN_Model_Use.XGBoost_Answer(vectors)
     print(ansIndex)
 
+
     ans = answers[ansIndex]
+    print(ans)
     if type(ans) == str:
         return None
     return answers[ansIndex]
