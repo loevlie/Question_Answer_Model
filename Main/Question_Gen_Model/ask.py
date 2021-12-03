@@ -52,6 +52,9 @@ def displayStructure(senseObj):
     return msg
     
 def splitIntoClauses(doc):
+    if not doc:
+        return []
+    
     root = doc[:].root
     
     subj = [c for c in root.children if c.dep_ == 'nsubj' or c.dep_ == 'nsubjpass' or c.dep_ == 'attr']
@@ -103,7 +106,8 @@ def splitIntoClauses(doc):
             clause = clause[:-1]
         if clause[-1].pos_ == 'PUNCT':
             clause = clause[:-1]
-        nClauses.append(clause)
+        if clause:
+            nClauses.append(clause)
     return nClauses
 
 def splitClausesFully(doc):
