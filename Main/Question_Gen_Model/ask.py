@@ -127,6 +127,8 @@ def generate_questions(corpus):
 
     for sentence in sentences:
         doc = nlp(sentence)
+        if sentence == "":
+            continue
         cs = splitClausesFully(doc)
 
         for c in cs:
