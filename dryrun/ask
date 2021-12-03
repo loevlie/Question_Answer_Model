@@ -101,6 +101,8 @@ def splitIntoClauses(doc):
             clause = nlp(subjToken.text + ' ' + clause.text)
         if clause[-1].pos_ == 'CCONJ':
             clause = clause[:-1]
+        if clause[-1].pos_ == 'PUNCT':
+            clause = clause[:-1]
         nClauses.append(clause)
     return nClauses
 
@@ -127,8 +129,6 @@ def generate_questions(corpus):
 
     for sentence in sentences:
         doc = nlp(sentence)
-        if sentence == "":
-            continue
         cs = splitClausesFully(doc)
 
         for c in cs:
@@ -383,7 +383,7 @@ def generate_questions(corpus):
 if __name__ == '__main__':
     corpus = open(sys.argv[1], "r").read()
     question_n = int(sys.argv[2])
-    corpus = preprocess(corpus, True)
+    corpus = preprocess(corpus)
     if corpus:
         generated = generate_questions(corpus)
         if question_n > len(generated):
