@@ -111,7 +111,7 @@ def neuralNetModel(fullDict):
     if len(vectors) < 30:
         vectors = np.concatenate((vectors,Padding))
         #vectors.extend(Padding*(30-len(vectors)))
-        np.append((answers,np.array(['NA']*(30-len(answers)))))
+        np.append(answers,np.array(['NA']*(30-len(answers))))
         #answers.extend(['NA']*(30-len(answers)))
     if len(answers)!=30:
         print(f"NOT WORKING {len(answers)}")
