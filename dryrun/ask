@@ -4,7 +4,7 @@ from numpy import append
 import spacy
 import inflect
 import sys
-import preprocess
+from preprocess import preprocess
 import random
 from spacy import displacy
 import warnings
