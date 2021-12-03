@@ -12,11 +12,15 @@ def patchList(L,span,filler):
     return L[:span[0]] + filler + L[span[1]:]
 
 
-def replaceInDoc(doc):
+def replaceInDoc(doc,possessiveFlag=False):
     phraseDic = {p.root:p for p in doc.noun_chunks}
     newList = list(doc[:])
     for i in range(len(doc)-1,-1,-1):
         token = doc[i]
+
+        if possessiveFlag and token.text.lower() in possessives:
+            continue
+        
         referents = doc._.coref_chains.resolve(token)
         if not referents:
             continue
@@ -68,10 +72,10 @@ def cleanNewlines(rawText):
             nText += char
     return nText.replace('\n','')
 
-def preprocess(rawText):
+def preprocess(rawText,possessiveFlag=False):
     rawText = cleanNewlines(rawText)
     doc = nlp(rawText)
-    return replaceInDoc(doc)
+    return replaceInDoc(doc,possessiveFlag)
 
 if __name__ == '__main__':
     with open('lincoln.txt') as f:

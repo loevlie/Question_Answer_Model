@@ -99,6 +99,8 @@ def splitIntoClauses(doc):
         if not clauseSubj and clause[0].pos_ not in joiningPOS:
             subjToken = subj[0]
             clause = nlp(subjToken.text + ' ' + clause.text)
+        if clause[-1].pos_ == 'CCONJ':
+            clause = clause[-1]
         nClauses.append(clause)
     return nClauses
 
