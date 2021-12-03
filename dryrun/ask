@@ -125,10 +125,10 @@ def generate_questions(corpus):
 
     for sentence in sentences:
         doc = nlp(sentence)
+        if sentence == "":
+                continue
         cs = splitClausesFully(doc)
         for c in cs:
-            if c == "":
-                continue
             doc = nlp(c)
             # displacy.render(doc, style="ent")
             best_question = ""
