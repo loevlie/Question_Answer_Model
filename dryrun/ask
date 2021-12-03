@@ -379,7 +379,7 @@ def generate_questions(corpus):
 if __name__ == '__main__':
     corpus = open(sys.argv[1], "r").read()
     question_n = int(sys.argv[2])
-    corpus = preprocess(corpus.text)
+    corpus = preprocess(corpus)
     if corpus:
         generated = generate_questions(corpus)
         if question_n > len(generated):
