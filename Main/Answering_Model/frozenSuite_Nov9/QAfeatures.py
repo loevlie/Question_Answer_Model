@@ -198,7 +198,7 @@ class QuestionSense:
                     modifiers.append(node)
             
         if not candidatePhrases:
-            print('Could not resolve this question as a binary comparison')
+            #print('Could not resolve this question as a binary comparison')
             self.subject,self.predicate = None,None
             return
         
