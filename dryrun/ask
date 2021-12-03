@@ -130,7 +130,11 @@ def generate_questions(corpus):
     p = inflect.engine()
     corpus = corpus.strip(".")
     sentences = corpus.split(". ")
-
+when_question_count = 0
+    where_question_count = 0
+    who_question_count=0
+    import math
+    Average_count = math.ceil(len(sentences)/3)
     for sentence in sentences:
         doc = nlp(sentence)
         cs = splitClausesFully(doc)
@@ -186,9 +190,10 @@ def generate_questions(corpus):
                         similar = True
                     if similar == False:
                         sim = nlp(q).similarity(doc)
-                        if sim > best_question_score:
+                        if sim > best_question_score and who_question_count<=Average_count:
                             best_question = q
                             best_question_score = sim
+                            who_question_count+=1
 
 
             #----------------------------------------------------------- Where Questions -----------------------------------------------------------
@@ -283,9 +288,10 @@ def generate_questions(corpus):
                             similar = True
                         if similar == False:
                             sim = nlp(q).similarity(doc)
-                            if sim > best_question_score:
+                            if sim > best_question_score and where_question_count<=Average_count:
                                 best_question = q
                                 best_question_score = sim
+                                where_question_count+=1
 
 
             # ----------------------------------------------------------- When Questions -----------------------------------------------------------
@@ -374,9 +380,10 @@ def generate_questions(corpus):
                                     similar = True
                                 if similar == False:
                                     sim = nlp(q).similarity(doc)
-                                    if sim > best_question_score:
+                                    if sim > best_question_score and when_question_count<=Average_count:
                                         best_question = q
                                         best_question_score = sim
+                                        when_question_count+=1
                         else:
                             continue
                     else:
