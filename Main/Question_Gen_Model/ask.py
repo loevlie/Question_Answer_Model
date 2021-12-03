@@ -100,7 +100,7 @@ def splitIntoClauses(doc):
             subjToken = subj[0]
             clause = nlp(subjToken.text + ' ' + clause.text)
         if clause[-1].pos_ == 'CCONJ':
-            clause = clause[-1]
+            clause = clause[:-1]
         nClauses.append(clause)
     return nClauses
 
