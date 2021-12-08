@@ -30,7 +30,7 @@ def replaceInDoc(doc,possessiveFlag=False):
             if j > 0:
                 filler.append('and ')
 
-            if referents[0] in phraseDic:
+            if referents[0] in phraseDic and ref in phraseDic:
                 filler.extend(list(phraseDic[ref]))
             else:
                 filler.extend([ref])

@@ -134,7 +134,8 @@ def generate_questions(corpus):
     where_question_count = 0
     who_question_count=0
     import math
-    Average_count = math.ceil(len(sentences)/3)
+    Average_count = math.ceil(len(sentences)/2)
+
     for sentence in sentences:
         doc = nlp(sentence)
         cs = splitClausesFully(doc)
@@ -239,7 +240,7 @@ def generate_questions(corpus):
 
                     
                     elif root.pos_ == "AUX" and (root.morph.get("VerbForm")[0] == "Inf" or root.morph.get('Tense')[0] == "Pres"):
-                        if list(root.lefts)[-1].pos_ == "AUX" :
+                        if list(root.lefts) and list(root.lefts)[-1].pos_ == "AUX" :
                             verb = ""
                             phrase = "Where " + list(root.lefts)[-1].text + " " + root.text + " " + subject_text
                         else:
@@ -247,7 +248,7 @@ def generate_questions(corpus):
                             phrase = "Where " + root.text + " " + subject_text 
                             
                     elif root.pos_ == "AUX" and root.morph.get('Tense')[0] == "Past":
-                        if list(root.lefts)[-1].pos_ == "AUX":
+                        if list(root.lefts) and list(root.lefts)[-1].pos_ == "AUX":
                             verb = ""
                             phrase = "Where " + list(root.lefts)[-1].text + " " + root.text + " " + subject_text 
                         else:
@@ -288,7 +289,7 @@ def generate_questions(corpus):
                             similar = True
                         if similar == False:
                             sim = nlp(q).similarity(doc)
-                            if sim > best_question_score and where_question_count<=Average_count:
+                            if sim > best_question_score and where_question_count<=2:
                                 best_question = q
                                 best_question_score = sim
                                 where_question_count+=1
@@ -327,7 +328,7 @@ def generate_questions(corpus):
                                 phrase = "When does " + subject_text + " " + verb
                         
                     elif root.pos_ == "VERB" and root.morph.get('Tense')[0] == "Past":
-                        if list(root.lefts)[-1].pos_ == "AUX":
+                        if list(root.lefts) and list(root.lefts)[-1].pos_ == "AUX":
                             aux = list(root.lefts)[-1].text
                             verb = root.text
                             phrase = "When " + aux + " " + subject_text + " " + verb
@@ -336,7 +337,7 @@ def generate_questions(corpus):
                             phrase = "When did " + subject_text + " " + verb
         
                     elif root.pos_ == "AUX" and (root.morph.get("VerbForm")[0] == "Inf" or root.morph.get('Tense')[0] == "Pres"):
-                        if list(root.lefts)[-1].pos_ == "AUX" :
+                        if list(root.lefts) and list(root.lefts)[-1].pos_ == "AUX" :
                             verb = ""
                             phrase = "When " + list(root.lefts)[-1].text + " " + root.text + " " + subject_text
                         else:
@@ -344,7 +345,7 @@ def generate_questions(corpus):
                             phrase = "When " + root.text + " " + subject_text 
                             
                     elif root.pos_ == "AUX" and root.morph.get('Tense')[0] == "Past":
-                        if list(root.lefts)[-1].pos_ == "AUX":
+                        if list(root.lefts) and list(root.lefts)[-1].pos_ == "AUX":
                             verb = ""
                             phrase = "When " + list(root.lefts)[-1].text + " " + root.text + " " + subject_text 
                         else:
@@ -388,13 +389,15 @@ def generate_questions(corpus):
                             continue
                     else:
                         continue
+            if best_question == '':
+                continue
             questions.append(best_question)
     return questions
 
 if __name__ == '__main__':
-    corpus = open(sys.argv[1], "r").read()
+    corpus = open(sys.argv[1], "r",encoding='ISO-8859-1').read()
     question_n = int(sys.argv[2])
-    corpus = preprocess(corpus)
+    corpus = preprocess(corpus,True)
     if corpus:
         generated = generate_questions(corpus)
         if question_n > len(generated):
